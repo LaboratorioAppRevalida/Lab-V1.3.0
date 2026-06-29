@@ -1,0 +1,104 @@
+Refatore completamente o sistema de imagens do projeto (uploads + storage + renderização) para corrigir um bug atual e ao mesmo tempo blindar a arquitetura definitivamente contra inconsistências futuras.
+
+🚨 PROBLEMA ATUAL
+
+Atualmente o sistema está quebrado porque:
+
+O banco de dados armazena apenas filenames puros, ex:
+1779416642328-ixqm3i.jpg
+O frontend tenta renderizar isso diretamente como URL
+As imagens existem no Supabase Storage, mas não são exibidas para usuários normais
+🎯 OBJETIVO
+
+Criar um sistema único, padronizado e à prova de erros para:
+
+upload de imagens
+armazenamento no banco
+renderização no frontend
+compatibilidade com dados antigos
+🔒 REGRAS OBRIGATÓRIAS (ARQUITETURA FINAL)
+1. STORAGE SERVICE ÚNICO
+
+Criar storageService.ts como única fonte de verdade para TODOS os uploads:
+
+avatars
+resumos
+news
+
+Nenhum upload pode usar Supabase diretamente fora dele.
+
+2. PADRÃO DE ARMAZENAMENTO (OBRIGATÓRIO)
+
+O banco SEMPRE deve armazenar:
+
+bucket/filename.ext
+
+Exemplos:
+
+resumos-media/1779416642328-ixqm3i.jpg
+avatars/user123/avatar.png
+news-media/abc123.jpg
+
+❌ Nunca salvar apenas filename puro
+
+3. FUNÇÃO GLOBAL DE RENDER (OBRIGATÓRIA)
+
+Criar função resolveImage(path: string, bucket?: string) que:
+
+Detecta se o path é legacy (sem "/")
+Corrige automaticamente adicionando bucket correto
+Gera URL pública usando:
+supabase.storage.from(bucket).getPublicUrl(path)
+Retorna URL final pronta para <img src>
+4. COMPATIBILIDADE COM DADOS ANTIGOS (CRÍTICO)
+
+O sistema deve suportar automaticamente:
+
+filenames puros antigos no banco
+registros sem bucket prefixado
+
+SEM necessidade de migration manual obrigatória.
+
+5. CORREÇÃO IMEDIATA DO BUG ATUAL
+
+Garantir que:
+
+imagens já existentes no Supabase Storage PASSEM a aparecer imediatamente
+sem precisar editar banco manualmente
+sem quebrar funcionalidades atuais
+6. PADRONIZAÇÃO TOTAL DO FRONTEND
+
+Atualizar TODOS os componentes de imagem para:
+
+NÃO montar URL manualmente
+SEM uso direto de supabase.storage.from().getPublicUrl()
+SEM uso de filename direto
+
+Tudo deve passar por resolveImage()
+
+7. SEGURANÇA ARQUITETURAL (BLINDAGEM)
+
+Remover qualquer lógica duplicada de upload ou renderização.
+
+Garantir:
+
+1 único padrão de upload
+1 única função de render
+1 único formato de storage
+🚫 RESTRIÇÕES
+Não quebrar funcionalidades existentes
+Não alterar schema do banco
+Não exigir migração manual obrigatória
+Não manter múltiplos padrões de upload
+✅ RESULTADO ESPERADO
+
+Ao final da refatoração:
+
+imagens aparecem corretamente para todos os usuários
+uploads são consistentes em todo o sistema
+banco nunca mais recebe filename puro isolado
+frontend nunca mais monta URL manualmente
+sistema fica escalável e à prova de regressões
+🧠 PRINCÍPIO FINAL
+
+Este sistema deve ser tratado como um Media Engine único e centralizado, sem variações ou exceções.

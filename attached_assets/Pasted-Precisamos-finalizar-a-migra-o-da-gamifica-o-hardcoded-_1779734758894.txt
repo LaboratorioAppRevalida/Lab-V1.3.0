@@ -1,0 +1,97 @@
+Precisamos finalizar a migração da gamificação hardcoded para Supabase.
+
+PROBLEMA ATUAL:
+
+* O painel admin cria missões corretamente no Supabase
+* As missões aparecem na tabela public.missions
+* Porém a página "Conquistas" ainda mostra apenas as missões antigas hardcoded
+* As novas missões criadas NÃO aparecem no app
+
+DIAGNÓSTICO:
+Conquistas.tsx / gamificationStorage.ts ainda estão consumindo MISSIONS[] hardcoded em vez da tabela public.missions.
+
+OBJETIVO:
+Migrar COMPLETAMENTE o consumo de missões para o banco Supabase, sem quebrar o sistema atual.
+
+REGRAS IMPORTANTES:
+
+* NÃO quebrar XP
+* NÃO quebrar progresso já existente
+* NÃO remover sistema legado ainda
+* Fazer migração segura e compatível
+* Não alterar multiplayer, auth, storage ou rankings
+
+O QUE FAZER:
+
+1. AUDITAR:
+
+* Conquistas.tsx
+* gamificationStorage.ts
+* quaisquer hooks/services relacionados a missões
+* identificar exatamente onde MISSIONS[] está sendo usado
+
+2. CRIAR FONTE ÚNICA:
+
+* usar exclusivamente public.missions
+* consumir via missionService.ts
+* remover dependência prática do array hardcoded
+
+3. IMPLEMENTAR:
+
+* fetchMissions()
+* listar apenas:
+
+  * is_active = true
+  * hidden = false
+* ordenar:
+
+  * type
+  * xp_reward
+  * created_at
+
+4. COMPATIBILIDADE:
+
+* manter fallback:
+
+  * se Supabase falhar → usar MISSIONS[] legado
+* NÃO apagar arrays antigos ainda
+
+5. ATUALIZAR:
+
+* Conquistas.tsx
+* qualquer componente de missão
+* progresso de missão
+* renderização de categorias
+* filtros
+* contadores
+
+6. GARANTIR:
+
+* missões novas criadas no admin apareçam instantaneamente
+* edição reflita no app
+* exclusão reflita no app
+* ativar/desativar missão funcione
+
+7. VERIFICAR:
+
+* typecheck zero erros
+* nenhuma regressão
+* nenhum loop infinito
+* nenhuma query duplicada
+* nenhuma quebra de loading
+
+8. NÃO MODIFICAR:
+
+* sistema de sessões
+* realtime
+* multiplayer
+* uploads
+* auth
+* ranking
+* storageService
+
+Ao final:
+
+* mostrar exatamente quais arquivos foram alterados
+* mostrar qual era o ponto hardcoded antigo
+* confirmar que o frontend agora usa Supabase como fonte principal das missões

@@ -1,0 +1,312 @@
+Você vai executar uma refatoração CRÍTICA do sistema multiplayer/timer do app Revalida.
+
+OBJETIVO:
+Resolver DEFINITIVAMENTE:
+
+1. desync de timer entre participantes
+2. drift após reconnect/refresh
+3. pausa automática inconsistente
+4. diferença de segundos entre médico/paciente
+5. ausência de pausa manual real
+
+IMPORTANTE:
+
+* NÃO quebrar nenhum fluxo existente
+* NÃO recriar arquitetura paralela
+* NÃO criar novo sistema realtime
+* NÃO duplicar timers
+* NÃO alterar gamificação
+* NÃO alterar rankings
+* NÃO alterar auth
+* NÃO alterar storage
+* NÃO tocar em telas/admin fora do multiplayer
+* NÃO modificar schema além do necessário
+* NÃO criar estado local redundante
+* NÃO usar setInterval como autoridade do tempo
+
+ANTES DE ESCREVER QUALQUER CÓDIGO:
+
+1. mapear TODO o fluxo atual de multiplayer/timer
+2. identificar:
+
+   * fonte atual do timer
+   * pontos onde o timer é decrementado
+   * reconnect flow
+   * pause flow
+   * realtime subscriptions
+   * recovery após refresh
+3. somente depois editar
+
+============================================================
+ARQUITETURA OBRIGATÓRIA
+=======================
+
+O TIMER DEVE SE TORNAR AUTORITATIVO NO BANCO.
+
+A sessão deve possuir UMA ÚNICA VERDADE:
+
+* status
+* timer_started_at
+* timer_remaining_seconds
+
+NUNCA:
+
+* timer do médico
+* timer do paciente
+
+O frontend apenas CALCULA visualmente.
+
+PROIBIDO:
+remaining -= 1 como fonte de verdade.
+
+PERMITIDO:
+remaining =
+timer_remaining_seconds -
+(Date.now() - timer_started_at)
+
+============================================================
+ESTADOS OFICIAIS
+================
+
+Manter existentes e adicionar:
+
+paused_manual
+
+Separar claramente:
+
+paused_manual
+= pausa intencional
+
+paused_disconnect
+= reconnect automático
+
+============================================================
+MIGRATION SQL
+=============
+
+Criar migration SEGURA e idempotente.
+
+Adicionar:
+
+ALTER TABLE public.multiplayer_sessions
+ADD COLUMN IF NOT EXISTS paused_by_user_id uuid;
+
+Atualizar CHECK de status para incluir:
+'paused_manual'
+
+NÃO remover estados antigos.
+
+NÃO destruir compatibilidade.
+
+============================================================
+COMPORTAMENTO OBRIGATÓRIO
+=========================
+
+========================
+RUNNING
+=======
+
+Sessão rodando:
+
+* timer_started_at != null
+* timer_remaining_seconds guarda o tempo restante base
+* frontend apenas calcula visualmente
+
+========================
+PAUSE MANUAL
+============
+
+Qualquer participante pode pausar.
+
+Ao pausar:
+
+1. calcular remaining real atual
+2. salvar no banco:
+   status = paused_manual
+   timer_remaining_seconds = remaining calculado
+   timer_started_at = null
+   paused_by_user_id = auth.uid()
+
+IMPORTANTE:
+
+* congelar instantaneamente para TODOS
+* realtime deve atualizar ambos simultaneamente
+
+========================
+RESUME
+======
+
+Qualquer participante pode retomar.
+
+Ao retomar:
+status = running
+timer_started_at = now()
+paused_by_user_id = null
+
+NÃO alterar:
+timer_remaining_seconds
+
+========================
+DISCONNECT
+==========
+
+Ao detectar disconnect:
+
+1. calcular remaining
+2. salvar:
+   status = paused_disconnect
+   timer_remaining_seconds = remaining
+   timer_started_at = null
+
+O OUTRO PARTICIPANTE DEVE:
+
+* congelar imediatamente
+* SEM drift
+* SEM continuar correndo segundos extras
+
+========================
+RECONNECT
+=========
+
+Ao reconectar:
+NUNCA:
+
+* recalcular tempo local
+* reiniciar timer
+* usar cache local
+
+SEMPRE:
+
+* usar estado do banco
+
+Ao retomar:
+status = running
+timer_started_at = now()
+
+============================================================
+PROBLEMA CRÍTICO A RESOLVER
+===========================
+
+BUG ATUAL:
+Quando alguém atualiza/desconecta:
+
+* o outro timer pausa
+* MAS existe delay
+* E após reconnect ambos ficam dessincronizados
+
+VOCÊ DEVE ELIMINAR:
+
+* drift
+* delay perceptível
+* timers diferentes entre usuários
+
+============================================================
+IMPLEMENTAÇÃO OBRIGATÓRIA
+=========================
+
+CENTRALIZAR TODA LÓGICA DE TIMER.
+
+Se já existir:
+
+* multiplayerSessionService
+* realtimeStateManager
+* useSessionHeartbeat
+* hooks de timer
+
+NÃO DUPLICAR.
+
+Escolher UMA única fonte central.
+
+============================================================
+UI
+==
+
+Adicionar botão:
+Pause / Resume
+
+REGRAS:
+
+* ambos participantes podem usar
+* não depende de host
+* realtime imediato
+
+Quando paused_manual:
+mostrar banner:
+"Estação pausada"
+"Pausada por X"
+
+Quando paused_disconnect:
+mostrar:
+"Aguardando reconexão do participante"
+
+============================================================
+IMPORTANTE SOBRE O TIMER
+========================
+
+O frontend PODE usar setInterval APENAS para render visual.
+
+MAS:
+
+* nunca salvar tempo decrementado continuamente
+* nunca confiar em segundos locais
+* nunca sincronizar segundos via realtime
+
+A autoridade SEMPRE vem do banco.
+
+============================================================
+COMPATIBILIDADE
+===============
+
+NÃO quebrar:
+
+* fluxo de estações
+* roles
+* realtime presence
+* ranking
+* XP
+* avaliação
+* recovery atual
+* multiplayer existente
+
+============================================================
+TESTES OBRIGATÓRIOS
+===================
+
+VALIDAR:
+
+1. ambos entram na estação
+2. timer sincronizado
+3. pause manual por qualquer lado
+4. resume manual
+5. refresh do médico
+6. refresh do paciente
+7. disconnect de rede
+8. reconnect
+9. ambos retomam exatamente no mesmo segundo
+10. zero drift após múltiplos reconnects
+11. zero diferenças de tempo entre usuários
+12. realtime continua funcionando
+
+============================================================
+ENTREGA
+=======
+
+Ao finalizar:
+
+1. listar TODOS os arquivos alterados
+2. explicar exatamente:
+
+   * onde estava o bug
+   * como foi resolvido
+   * qual é agora a fonte autoritativa
+3. confirmar:
+
+   * zero TypeScript errors
+   * zero arquitetura duplicada
+   * zero regressões conhecidas
+
+NÃO parar no meio.
+NÃO fazer parcialmente.
+NÃO improvisar arquitetura nova.
+NÃO criar soluções temporárias.
+Resolver corretamente e de forma definitiva.

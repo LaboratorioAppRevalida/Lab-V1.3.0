@@ -1,0 +1,199 @@
+Você irá atuar como engenheiro sênior responsável EXCLUSIVAMENTE pelo sistema de presença realtime do app.
+NÃO altere nenhum outro sistema fora do escopo solicitado.
+
+OBJETIVO:
+Corrigir definitivamente o sistema de status online/offline/em estação sem quebrar:
+
+* multiplayer
+* rankings
+* gamificação
+* uploads
+* auth
+* sessões
+* storage
+* editor de checklists
+* qualquer fluxo existente
+
+REGRAS CRÍTICAS:
+
+1. NÃO alterar estrutura de tabelas existentes sem necessidade extrema
+2. NÃO alterar gamificação
+3. NÃO alterar storage
+4. NÃO alterar uploads
+5. NÃO alterar sistema de XP
+6. NÃO alterar sistema de estrelas
+7. NÃO alterar rotas
+8. NÃO alterar lógica do multiplayer além da presença realtime
+9. NÃO remover código existente sem entender impacto
+10. NÃO inventar novas arquiteturas fora do escopo
+11. NÃO criar soluções mágicas client-side frágeis
+12. NÃO editar arquivos não relacionados ao realtime/presença
+13. NÃO quebrar compatibilidade com Supabase Realtime atual
+
+PROBLEMA ATUAL:
+O status online/offline só atualiza quando a página é recarregada.
+Usuários online aparecem offline até refresh.
+Status “em estação” também fica inconsistente.
+O app já possui multiplayer_sessions e realtime parcial funcionando.
+
+OBJETIVO FINAL:
+Implementar um sistema profissional de presença realtime com:
+
+* heartbeat
+* reconnect automático
+* cleanup automático
+* atualização instantânea
+* fallback seguro
+* sincronização multi-abas
+* sem precisar atualizar a página
+
+ARQUITETURA DESEJADA:
+Usar Supabase Realtime Presence adequadamente.
+
+O sistema deve possuir:
+
+1. Presence channel único global
+2. Heartbeat periódico
+3. Estado local sincronizado
+4. Cleanup automático ao disconnect
+5. Reconexão resiliente
+6. Atualização imediata da UI
+7. Detecção de usuário:
+
+   * online
+   * offline
+   * em estação
+8. Baixo risco de memory leak
+9. Sem polling agressivo
+10. Sem loops de render
+
+ESTADOS NECESSÁRIOS:
+
+* offline
+* online
+* em_estacao
+
+IMPORTANTE:
+“em_estacao” deve possuir prioridade visual sobre “online”.
+
+ANTES DE EDITAR:
+
+1. Mapear TODOS os arquivos relacionados a:
+
+   * realtime
+   * online users
+   * presence
+   * multiplayer status
+   * user status
+   * lobby
+2. Identificar:
+
+   * duplicações
+   * estados conflitantes
+   * listeners duplicados
+   * subscriptions órfãs
+   * memory leaks
+3. Ler completamente os fluxos atuais antes de editar
+
+IMPLEMENTAÇÃO ESPERADA:
+
+FASE 1 — AUDITORIA
+Mapear:
+
+* serviços realtime
+* hooks
+* contextos
+* listeners
+* subscriptions
+* presence channels
+* multiplayer presence
+
+FASE 2 — CENTRALIZAÇÃO
+Criar um serviço único profissional:
+src/services/realtime/presenceService.ts
+
+Responsabilidades:
+
+* subscribe
+* unsubscribe
+* heartbeat
+* reconnect
+* state sync
+* cleanup
+* expose online users
+
+NÃO duplicar lógica em componentes.
+
+FASE 3 — HEARTBEAT
+Implementar heartbeat resiliente:
+
+* intervalo seguro
+* sem spam
+* cleanup correto
+* sem múltiplos intervals simultâneos
+
+FASE 4 — RECONNECT
+Implementar:
+
+* reconnect automático
+* resync de presença
+* restauração de estado
+* prevenção de subscriptions duplicadas
+
+FASE 5 — UI SYNC
+Garantir atualização imediata:
+
+* lobby
+* multiplayer
+* lista de usuários
+* status “em estação”
+
+Sem refresh manual.
+
+FASE 6 — CLEANUP
+Garantir:
+
+* unsubscribe correto
+* remoção de listeners
+* remoção de intervals
+* sem memory leaks
+
+CRITÉRIOS DE SEGURANÇA:
+
+* NÃO quebrar multiplayer_sessions
+* NÃO alterar schema SQL sem necessidade
+* NÃO alterar RLS
+* NÃO alterar auth
+* NÃO criar dependências novas desnecessárias
+* NÃO criar lógica acoplada aos componentes
+* NÃO fazer polling contínuo
+
+ANTES DE FINALIZAR:
+Executar:
+
+1. Typecheck completo
+2. Verificação de imports quebrados
+3. Verificação de listeners duplicados
+4. Verificação de reconnect
+5. Verificação de cleanup
+6. Verificação multi-abas
+7. Verificação de atualização instantânea
+
+RESULTADO ESPERADO:
+
+* usuário entra → aparece online imediatamente
+* inicia estação → status muda imediatamente
+* sai da estação → volta online imediatamente
+* fecha aba → offline corretamente
+* reconnect automático após perda de conexão
+* nenhuma necessidade de refresh manual
+
+AO FINAL:
+Forneça:
+
+1. Lista exata de arquivos alterados
+2. O que foi corrigido
+3. O que foi centralizado
+4. Riscos residuais
+5. Fluxo final da arquitetura realtime
+6. O que NÃO foi alterado propositalmente

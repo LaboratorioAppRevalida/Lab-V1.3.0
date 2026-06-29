@@ -1,0 +1,212 @@
+Vamos implementar a FASE MEDALHAS 3 — UX, Perfil e Dashboard.
+
+IMPORTANTE:
+
+* NÃO alterar achievementEngine.ts.
+* NÃO alterar as migrations 007 e 008.
+* NÃO alterar missionProgressEngine.
+* NÃO alterar titleService.
+* NÃO alterar eventService.
+* NÃO criar novas tabelas.
+* NÃO remover o fallback legado.
+* NÃO quebrar Conquistas.tsx existente.
+* NÃO adicionar bibliotecas novas.
+
+Objetivo:
+
+Transformar o sistema de medalhas em uma feature visível para o usuário.
+
+---
+
+## PARTE A — TOAST DE MEDALHA DESBLOQUEADA
+
+Implementar detecção de transição:
+
+locked → unlocked
+
+usando os dados persistidos em user_achievements.
+
+Requisitos:
+
+1. Criar:
+
+src/components/gamification/AchievementUnlockedToast.tsx
+
+2. Exibir:
+
+🏅 Medalha Desbloqueada
+
+* nome da medalha
+* tier (Bronze, Prata, Ouro, Platina)
+* descrição
+
+3. Visual:
+
+* mesmo padrão premium dos toasts de missão
+* discreto
+* mobile friendly
+
+4. Auto-dismiss:
+
+5 segundos
+
+5. Não repetir:
+
+* reload
+* focus
+* visibilitychange
+* mount
+
+Somente quando uma nova medalha surgir em runtime.
+
+6. Máximo:
+
+1 toast simultâneo
+
+fila simples se múltiplas medalhas forem desbloqueadas.
+
+7. DEV log:
+
+[AchievementToast] unlocked:
+
+* slug
+* tier
+
+---
+
+## PARTE B — PERFIL
+
+Atualizar:
+
+src/pages/Perfil.tsx
+
+Adicionar seção:
+
+"Minhas Medalhas"
+
+Mostrar:
+
+* contador desbloqueadas / total
+
+Exemplo:
+
+8 / 12 Medalhas
+
+Renderizar:
+
+AchievementBadge (modo card compacto)
+
+Ordenação:
+
+Platina
+Ouro
+Prata
+Bronze
+
+desbloqueadas primeiro.
+
+Exibir também medalhas bloqueadas em estado cinza.
+
+---
+
+## PARTE C — PERFIL PÚBLICO
+
+Atualizar:
+
+src/pages/PerfilPublico.tsx
+
+Adicionar seção:
+
+"Medalhas"
+
+Exibir:
+
+* apenas medalhas desbloqueadas
+* até 12 itens
+* mesmas cores oficiais
+
+Se não houver medalhas:
+
+mostrar estado vazio elegante.
+
+---
+
+## PARTE D — DASHBOARD / HOME
+
+Atualizar:
+
+src/pages/Inicio.tsx
+
+No card de Conquistas exibir:
+
+* Medalhas desbloqueadas
+* Missões concluídas
+* Títulos desbloqueados
+
+Exemplo:
+
+🏅 8/12
+🎯 14
+🏆 3
+
+Sem queries extras agressivas.
+
+Usar os serviços já existentes.
+
+---
+
+## PARTE E — REUTILIZAÇÃO
+
+Usar exclusivamente:
+
+achievementService.ts
+
+Não duplicar lógica.
+
+Não recalcular medalhas.
+
+Não consultar localStorage diretamente.
+
+Fonte principal:
+
+Supabase
+
+Fallback:
+
+sistema legado já existente.
+
+---
+
+## PARTE F — PERFORMANCE
+
+Evitar:
+
+* N+1 queries
+* loops
+* polling
+
+Usar:
+
+Promise.all
+cache local quando possível
+
+---
+
+## VALIDAÇÃO FINAL
+
+Ao finalizar:
+
+* rodar typecheck
+* verificar runtime
+* listar arquivos criados
+* listar arquivos alterados
+* confirmar:
+
+✓ achievementEngine intacto
+✓ missionProgressEngine intacto
+✓ títulos intactos
+✓ eventos intactos
+✓ multiplayer intacto
+✓ zero TypeScript errors
+✓ zero memory leaks
+✓ zero regressões

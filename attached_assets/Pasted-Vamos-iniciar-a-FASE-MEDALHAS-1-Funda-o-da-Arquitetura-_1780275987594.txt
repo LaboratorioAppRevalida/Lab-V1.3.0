@@ -1,0 +1,145 @@
+Vamos iniciar a FASE MEDALHAS 1 — Fundação da Arquitetura.
+
+IMPORTANTE:
+
+Antes de alterar qualquer arquivo:
+
+* faça uma auditoria rápida dos arquivos envolvidos
+* identifique dependências
+* preserve integralmente o sistema atual
+
+OBJETIVO:
+
+Criar a infraestrutura completa para medalhas persistentes no Supabase.
+
+NÃO migrar ainda as 12 medalhas existentes.
+
+NÃO remover o sistema atual.
+
+NÃO alterar o comportamento atual de Conquistas.
+
+NÃO quebrar nada.
+
+REQUISITOS
+
+1. Criar migration:
+
+007_achievements.sql
+
+Tabela:
+
+achievements
+
+Campos:
+
+* id uuid pk
+* slug text unique
+* title text
+* description text
+* tier text
+* icon text nullable
+* color text nullable
+
+Critérios automáticos:
+
+* required_streak integer nullable
+* required_stations integer nullable
+* required_average numeric nullable
+
+Controle:
+
+* is_active boolean default true
+* created_at
+* updated_at
+
+2. Criar tabela:
+
+user_achievements
+
+Campos:
+
+* id uuid pk
+* user_id uuid
+* achievement_id uuid
+* unlocked_at timestamptz
+
+Constraint:
+
+UNIQUE(user_id, achievement_id)
+
+3. Implementar RLS igual ao padrão usado em:
+
+* user_titles
+* user_mission_progress
+
+4. Criar:
+
+src/lib/achievementService.ts
+
+Com:
+
+* fetchAchievements()
+* fetchUserAchievements(userId)
+* unlockAchievement(userId, achievementId)
+* fetchAchievementCounts()
+
+5. unlockAchievement deve usar:
+
+ON CONFLICT DO NOTHING
+
+mesmo padrão do unlockTitle.
+
+6. Criar componente reutilizável:
+
+src/components/gamification/AchievementBadge.tsx
+
+IMPORTANTE:
+
+Reaproveitar visualmente o sistema atual:
+
+* bronze
+* prata
+* ouro
+* platina
+
+usando a mesma identidade visual já existente.
+
+7. NÃO alterar:
+
+Conquistas.tsx
+
+ainda.
+
+A tela atual deve continuar funcionando exatamente igual.
+
+8. NÃO remover:
+
+ACHIEVEMENTS[]
+
+TIER_META
+
+isAchievementUnlocked()
+
+gamificationStorage.ts
+
+Tudo deve coexistir.
+
+9. NÃO implementar unlock automático ainda.
+
+Apenas infraestrutura.
+
+10. Confirmar:
+
+* TypeScript 0 erros
+* Runtime limpo
+* Sem alterações visuais ainda
+* Nenhuma regressão
+
+Ao finalizar:
+
+listar:
+
+* migrations criadas
+* arquivos criados
+* arquivos alterados
+* dependências futuras para FASE MEDALHAS 2

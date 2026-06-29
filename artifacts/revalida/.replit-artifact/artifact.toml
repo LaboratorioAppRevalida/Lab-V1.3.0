@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Revalida — 2ª Fase"
+version = "1.0.0"
+id = "artifacts/revalida"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21831
+
+[services.development]
+run = "pnpm --filter @workspace/revalida run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/revalida", "run", "build" ]
+publicDir = "artifacts/revalida/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21831"
+BASE_PATH = "/"

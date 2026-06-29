@@ -1,0 +1,351 @@
+Você é um engenheiro senior responsável por EVOLUIR a arquitetura de gamificação da plataforma sem quebrar absolutamente nada do sistema atual.
+
+IMPORTANTE:
+
+* NÃO remover funcionalidades existentes
+* NÃO alterar regras atuais sem antes mapear
+* NÃO quebrar multiplayer
+* NÃO quebrar auth
+* NÃO quebrar rankings
+* NÃO quebrar uploads/storage
+* NÃO alterar schema sem auditoria
+* NÃO criar duplicação de serviços
+* NÃO hardcodar novas regras
+* NÃO criar nova arquitetura paralela
+
+OBJETIVO DESTA TASK:
+FASE 1 — AUDITORIA + CENTRALIZAÇÃO DA GAMIFICAÇÃO
+e
+FASE 2 — GERENCIADOR ADMINISTRATIVO DE MISSÕES/TÍTULOS/NÍVEIS
+
+ANTES DE ESCREVER QUALQUER LINHA:
+Faça uma auditoria COMPLETA da gamificação atual.
+
+MAPEAR:
+
+* onde o XP é concedido
+* como o XP é calculado
+* fórmula de níveis
+* limite máximo de nível
+* títulos existentes
+* achievements existentes
+* missões existentes
+* triggers de gamificação
+* streaks
+* ranking XP
+* qualquer hardcode relacionado a gamificação
+* tabelas Supabase relacionadas
+* services existentes
+* hooks existentes
+* contexts existentes
+
+IDENTIFICAR:
+
+* duplicações
+* constantes hardcoded
+* lógica espalhada
+* regras invisíveis
+* pontos frágeis
+* risco de drift
+* risco de inconsistência
+
+DEPOIS DA AUDITORIA:
+Criar UMA arquitetura centralizada.
+
+OBJETIVO:
+Toda gamificação deve passar a ser administrável.
+
+CRIAR:
+
+* gamificationService.ts
+* missionService.ts
+* levelService.ts
+* titleService.ts
+
+IMPORTANTE:
+Se já existir algo parecido:
+
+* reutilizar
+* refatorar
+* consolidar
+* NÃO duplicar
+
+====================================================================
+FASE 2 — PAINEL ADMINISTRATIVO DE GAMIFICAÇÃO
+=============================================
+
+Criar nova área no painel administrativo:
+
+"GAMIFICAÇÃO"
+
+Pode ser:
+
+* nova página
+  ou
+* nova aba
+
+APENAS administradores podem acessar.
+
+====================================================================
+SEÇÃO 1 — MISSÕES
+=================
+
+Criar CRUD COMPLETO de missões.
+
+ADMIN DEVE CONSEGUIR:
+
+* criar missão
+* editar missão
+* ativar/desativar
+* remover
+* visualizar status
+* visualizar recompensa
+* visualizar requisitos
+
+MAPEAR E IMPORTAR AUTOMATICAMENTE:
+todas as missões já existentes do sistema atual.
+
+NÃO perder missões antigas.
+
+MISSÕES DEVEM TER:
+
+* id
+* nome
+* descrição
+* xp_reward
+* tipo
+* categoria
+* raridade
+* ativo/inativo
+* hidden
+* icon
+* trigger_type
+* trigger_value
+* created_at
+* updated_at
+
+TIPOS:
+
+* diária
+* semanal
+* especial
+* evento
+* secreta
+
+TRIGGERS:
+
+* completar estação
+* login
+* streak
+* completar checklist
+* finalizar multiplayer
+* tempo online
+* etc
+
+TUDO ADMINISTRÁVEL.
+
+====================================================================
+SEÇÃO 2 — NÍVEIS
+================
+
+Criar sistema administrável de níveis.
+
+IMPORTANTE:
+usar XP TOTAL acumulada
+e NÃO xp por nível.
+
+CRIAR:
+tabela/config centralizada de níveis.
+
+CADA NÍVEL DEVE TER:
+
+* level
+* xp_required_total
+* reward_type
+* reward_value
+* title_id
+* created_at
+
+ADMIN DEVE CONSEGUIR:
+
+* editar curva XP
+* criar novos níveis
+* alterar recompensas
+* visualizar progressão
+* reorganizar níveis
+
+IDENTIFICAR automaticamente:
+como o sistema atual calcula níveis
+e migrar sem quebrar usuários existentes.
+
+MANTER:
+níveis atuais dos usuários.
+
+====================================================================
+SEÇÃO 3 — TÍTULOS
+=================
+
+Criar sistema completo de títulos.
+
+IMPORTANTE:
+Hoje aparentemente existem títulos hardcoded.
+Mapear todos antes de alterar.
+
+CRIAR:
+
+* tabela titles
+* tabela user_titles
+
+TÍTULOS DEVEM TER:
+
+* id
+* name
+* description
+* rarity
+* color
+* icon
+* unlock_level
+* event_id
+* is_active
+* created_at
+
+RARIDADES:
+
+* common
+* rare
+* epic
+* legendary
+* exclusive
+* event
+
+USUÁRIO DEVE PODER:
+
+* desbloquear múltiplos títulos
+* equipar título
+* trocar título ativo
+
+ADMIN DEVE CONSEGUIR:
+
+* criar título
+* editar
+* remover
+* conceder manualmente
+* vincular a eventos
+* vincular a níveis
+* ativar/desativar
+
+IMPORTANTE:
+Preservar títulos já existentes.
+
+====================================================================
+SEÇÃO 4 — EVENTOS
+=================
+
+Criar fundação do sistema de eventos.
+
+CRIAR:
+
+* tabela events
+* tabela event_rewards
+* tabela event_missions
+
+EVENTOS DEVEM TER:
+
+* nome
+* descrição
+* banner
+* starts_at
+* ends_at
+* ativo
+* tipo
+
+ADMIN DEVE CONSEGUIR:
+
+* criar eventos
+* editar eventos
+* ativar/desativar
+* vincular missões
+* vincular títulos
+* vincular recompensas
+
+NÃO implementar ainda:
+
+* battle pass
+* temporadas
+* cosméticos
+* loja
+
+Apenas fundação estrutural.
+
+====================================================================
+SEÇÃO 5 — CORREÇÃO DE BUG UI
+============================
+
+BUG:
+Ao clicar em:
+
+* favoritar usuário
+* convidar usuário
+
+o sistema também abre o perfil público.
+
+CORRIGIR:
+o clique deve executar APENAS a ação do botão.
+
+Aplicar:
+event.stopPropagation()
+
+SEM quebrar:
+
+* navegação
+* cards
+* perfil público
+
+====================================================================
+IMPORTANTE — REGRAS DE SEGURANÇA
+================================
+
+ANTES DE ALTERAR:
+
+* mapear arquitetura atual
+* identificar dependências
+* identificar hooks
+* identificar services
+* identificar tabelas
+* identificar triggers
+
+NÃO:
+
+* quebrar produção
+* apagar dados
+* resetar XP
+* resetar níveis
+* resetar títulos
+* alterar multiplayer
+* alterar realtime
+* alterar auth
+* alterar uploads
+
+SE NECESSÁRIO:
+criar migração segura e incremental.
+
+SEMPRE:
+
+* reaproveitar código existente
+* consolidar lógica
+* evitar duplicação
+* manter compatibilidade retroativa
+
+NO FINAL:
+entregar relatório COMPLETO contendo:
+
+* arquivos alterados
+* tabelas criadas
+* serviços centralizados
+* regras encontradas
+* fórmula atual de níveis
+* títulos existentes encontrados
+* missões encontradas
+* hardcodes eliminados
+* possíveis riscos futuros
+* sugestões estruturais

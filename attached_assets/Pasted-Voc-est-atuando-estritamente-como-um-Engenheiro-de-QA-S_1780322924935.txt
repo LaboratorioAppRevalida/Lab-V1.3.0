@@ -1,0 +1,41 @@
+Você está atuando estritamente como um Engenheiro de QA Sênior e Auditor de Performance/UX. 
+
+DIRETRIZ CRÍTICA DE OPERAÇÃO: Sob nenhuma circunstância você deve alterar, refatorar, criar ou deletar qualquer arquivo do workspace. Seu objetivo é única e exclusivamente INVESTIGAR e COLETAR EVIDÊNCIAS. Você é um observador passivo. Não aplique correções.
+
+Execute uma varredura minuciosa no repositório para cobrir as Fases G e H do nosso plano de auditoria, gerando um relatório descritivo contendo: Arquivo, Linha de Código, Diagnóstico Técnico e Impacto na Produção.
+
+---
+
+### FASE G — UX (Experiência do Usuário e Resiliência de Interface)
+
+1. TRATAMENTO DE FALHAS DO SUPABASE E REDE:
+   - Investigue todos os blocos `try/catch` e interceptadores nos arquivos dentro de `src/services/` (especialmente `sessionService`, `profileService`, `checklistService`, `newsService`).
+   - Mapeie o que acontece no frontend se o Supabase falhar em responder (500, Timeout ou queda de conexão). Existe algum mecanismo de fallback visível ao usuário, uso de ErrorBoundary nas rotas principais, ou o sistema silencia o erro/gera tela branca?
+
+2. GERENCIAMENTO DE CARREGAMENTO (ESTADOS DE LOADING):
+   - Inspecione os componentes que renderizam as rotas `/rankings`, `/progresso`, `/noticias` e `/conquistas`.
+   - Verifique como o estado de carregamento (`loading`, `isLoading`) é tratado. O app utiliza Skeletons/Spinners estruturados ou a UI sofre "Layout Shift" (salto de componentes) quando o array de dados é montado? Onde faltam loaders?
+
+3. REATIVIDADE DO BLOQUEIO DE CONTA (SuspendedScreen):
+   - Analise o arquivo `AuthContext` ou onde o estado do perfil do usuário logado é mantido.
+   - Verifique se há um listener ativo (ex: via Supabase Realtime na tabela `profiles`) que detecte se a flag `is_suspended` foi alterada para `true` por um admin e bloqueie o usuário na tela atual imediatamente, ou se o usuário consegue continuar usando as abas já abertas até dar um F5 (Reload).
+
+---
+
+### FASE H — PERFORMANCE (Otimização, Retenção de Memória e Re-renders)
+
+1. PROPAGAÇÃO DE RE-RENDERIZAÇÕES (Context vs UI):
+   - Analise o ciclo de vida do `TrainingContext` e o arquivo que renderiza a tela `/treino/estacao`.
+   - O cronômetro (timer em segundos) e as interações do PEP alteram o estado do contexto principal? Investigar se essa atualização de estado frequente dispara re-renderizações em cascata no layout global (`AppShell`, `BottomNav`, `AppHeader`) ou se a lógica do timer e mutação do PEP está isolada via Refs ou subcomponentes memoizados.
+
+2. RETENÇÃO DE LISTENERS E VAZAMENTO DE MEMÓRIA (Realtime Cleanup):
+   - Rastreie todos os pontos onde canais do Supabase Realtime (`Presence` ou `Broadcast`) são criados (especialmente no `realtimeStateManager.ts`, `TrainingContext` e hooks de treino).
+   - Verifique rigorosamente as funções de retorno de cleanup (dentro de `useEffect` ou métodos de destruição). O sistema executa `.unsubscribe()` ou `supabase.removeChannel()` em absolutamente TODOS os canais ao sair da rota de treino? Identifique canais que continuam abertos em background.
+
+3. EFICIÊNCIA DE CONSULTAS E FILTROS EM CAMPOS JSONB:
+   - Inspecione os arquivos em `src/services/` que interagem com as tabelas `checklists` e `resumos`.
+   - Analise se filtros de busca por palavra-chave, categorias ou sub-itens de tarefas e impressos são processados via cláusulas SQL otimizadas enviadas ao Supabase, ou se o frontend puxa o objeto JSONB inteiro para a memória do cliente para realizar operações de `.filter()`, `.map()` ou `.find()` localmente.
+
+---
+
+Gere o relatório técnico detalhado e puramente descritivo com base nos arquivos analisados. Lembre-se: NÃO modifique o código.

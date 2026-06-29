@@ -1,0 +1,26 @@
+SYSTEM INSTRUCTION: We want to create the ultimate premium "Fundo Vivo" (Live Dynamic Background) framework. The system must support BOTH options:
+1) Kinetic CSS animations (slow rotation, panning, pulsing) applied to uploaded static images (including .jfif).
+2) Native background video streaming supporting custom .mp4 or .webm uploads running in a muted hardware-accelerated loop.
+
+Please strictly execute these database, service, and UI layout upgrades:
+
+1. DATABASE EXTENSION (Supabase Migration):
+   • Add the following columns to the `platform_config` table with safe defaults:
+     - `bg_media_type` / `login_bg_media_type`: text (default 'image') -- values: 'image' or 'video'
+     - `bg_video_url` / `login_video_url`: text (nullable)
+     - `bg_image_animation` / `login_bg_image_animation`: text (default 'none') -- values: 'none', 'spin-slow', 'pan-slow', 'pulse-slow'
+     - `bg_image_animation_speed` / `login_bg_image_animation_speed`: integer (default: 60)
+   • Update `platformConfigService.ts` and `PlatformThemeContext` to handle, map, and cache these new media properties.
+
+2. ADMIN DASHBOARD UPGRADE (AdminPersonalizacao.tsx):
+   • In both tabs ("Área Interna" and "Tela de Login"), under the background upload sector, add a Toggle Button or Selector: "Tipo de Mídia de Fundo" with options: [ 🖼️ Imagem Estática ] and [ 🎥 Vídeo em Loop ].
+   • If "Imagem Estática" is selected: Show the standard file picker (accepting .jfif/.png/.jpg), the 5 spatial sliders, and the new "Efeitos Dinâmicos (Fundo Vivo)" section containing the Animation Type dropdown (Nenhum, Rotação Orbital Lenta, Panorâmica, Pulsação) and the Speed Slider (10s to 120s).
+   • If "Vídeo em Loop" is selected: Swap the upload zone to accept `.mp4` or `.webm` files. When saved, upload these to `resumos-media/platform-video-${Date.now()}` and save the URL to the video column.
+   • Update the right-column Live Sandbox preview to immediately render either the animated `<img>` layer or a `<video>` tag running with `muted loop playsInline` based on the selected inputs.
+
+3. HOOD SHELL IMPLEMENTATION (AppShell.tsx & Login.tsx):
+   • Update the background layer wrapper in both `AppShell.tsx` and `Login.tsx`.
+   • Check `config.bgMediaType` / `config.loginBgMediaType`. If 'video' and a video URL exists, render a background `<video src={url} muted loop autoplay playsinline className="w-full h-full object-cover pointer-events-none absolute inset-0" style={{ opacity: config.bgImageOpacity / 100, filter: "blur(" + config.bgImageBlur + "px)", transform: "scale(" + config.bgImageScale / 100 + ")" }} />`.
+   • If 'image', keep the current image container layer and cleanly apply the continuous CSS animation loop matching the chosen `bg_image_animation` string using GPU accelerated translation properties (`will-change: transform`).
+
+Ensure smooth crossfades between states, highly optimized 60fps rendering, and zero TypeScript compilation errors.

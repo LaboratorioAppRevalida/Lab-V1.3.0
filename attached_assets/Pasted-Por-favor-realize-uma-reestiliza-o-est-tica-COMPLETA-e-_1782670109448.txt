@@ -1,0 +1,27 @@
+Por favor, realize uma reestilização estética COMPLETA e GLOBAL na plataforma, mantendo rigorosamente inalteradas as posições de todos os botões, links, abas, modais, tabelas e estruturas existentes. Use o mecanismo de alternância de tema (Claro/Escuro) que já está implementado na aplicação, alterando apenas o estilo visual de ambos para um padrão Glassmorphism Premium com bordas ultra-arredondadas.
+
+Siga exatamente estas diretrizes de folha de estilo dentro do arquivo css global (ex: src/index.css) ou na configuração do Tailwind, vinculando-as ao estado do tema atual:
+
+1. CONFIGURAÇÃO BI-TEMA ADAPTÁVEL (Baseada em Gemini_Generated_Image_5oiyoe5oiyoe5oiy_2.png):
+   - MODO ESCURO (Ativado pelo switch atual da plataforma):
+     * Fundo Global: Azul Escuro Profundo (#040D14)
+     * Textura dos Cards: Camada translúcida rgba(4, 13, 20, 0.45) com backdrop-blur-xl
+     * Bordas dos Cards: 1px de espessura com leve fluorescência ciano rgba(0, 229, 193, 0.15)
+     * Texto Principal: Branco puro (#FFFFFF) para alto contraste.
+     * Cor de Destaque/Ativo: Verde-Ciano Médico (#00E5C1).
+   - MODO CLARO (Ativado pelo switch atual da plataforma):
+     * Fundo Global: Cinza gelo cirúrgico limpo (#F5F8F7)
+     * Textura dos Cards: Camada translúcida rgba(255, 255, 255, 0.4) com backdrop-blur-xl
+     * Bordas dos Cards: 1px de espessura esbranquiçada e sutil rgba(255, 255, 255, 0.6)
+     * Texto Principal: Grafite Clínico Escuro (#1E293B) para legibilidade impecável.
+     * Cor de Destaque/Ativo: Verde-Ciano Médico (#00D5B4).
+
+2. ARREDONDAMENTO ULTRA ACENTUADO GLOBAL (Inspirado em app ui_2.jfif e glass 4.webp):
+   - Aplique bordas extremamente arredondadas em todos os contêineres e cards principais utilizando as classes 'rounded-3xl' ou 'rounded-[2rem]'.
+   - Mantenha botões, badges e campos de input com formato anatômico e suave (rounded-xl ou rounded-full), sem alterar o posicionamento de nenhum deles.
+
+3. POLIMENTO DE TEXTOS E INPUTS (Inspirado em Easy Chat Interface.jfif):
+   - Certifique-se de que os campos de entrada de texto e dropdowns ganhem uma textura de vidro ligeiramente contrastante em relação ao card pai, mantendo o texto interno com 100% de opacidade e legibilidade.
+   - O foco do input (focus:border-primary) deve brilhar suavemente no Verde-Ciano da marca.
+
+Rode o build do projeto ('vite build') após as alterações para garantir que a transição de temas através do seu ícone atual renderize instantaneamente os dois novos visuais de vidro polido.

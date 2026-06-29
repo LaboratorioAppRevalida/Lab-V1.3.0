@@ -1,0 +1,33 @@
+SYSTEM INSTRUCTION - DEEP ARCHITECTURAL AUDIT: STATIONS CREATION SYSTEM & RBAC EXPANSION
+
+Before writing, modifying, or refactoring any code, you must execute a deep architectural audit of our existing Station/OSCE Creation System and Administrative Panel. We plan to safely onboard a new user tier called 'colaborador' (Collaborators) into this exact system, reusing the entire current infrastructure under strict boundaries.
+
+To do this with zero regression risk, analyze the files and provide an exhaustive engineering report on how the creation pipeline is currently built.
+
+THE EXACT COLLABORATOR MECHANICS TO ENGINE-FIT:
+1. Ownership Signature: Every newly created station must automatically record the author's UUID in a 'created_by' field.
+2. Row-Level Isolation: If user.role === 'colaborador', the data fetching layer must filter queries to return ONLY stations where 'created_by' equals their active UUID. Admins ('admin') bypass this and see all content.
+3. Feature Stripping: The "Delete/Excluir" button and its underlying API/Supabase trigger must be completely compiled-out or conditionally hidden for Collaborators.
+4. Mutation Guard: The "Edit/Editar" action must check if 'created_by === user.id' before opening the mutation form.
+5. Content Gate: Stations created by collaborators should default to a pending state (e.g., 'is_approved: false') so they don't pollute the active multiplayer matchmaking pool until an admin explicitly reviews and activates them.
+6. Progress Tracker Metric: A header widget must aggregate the collaborator's contribution: "Estações Carregadas: X / 50 para o próximo mês grátis!".
+
+YOUR AUDIT MANDATE — INVESTIGATE & MAP THE FOLLOWING CURRENT IMPLEMENTATIONS:
+
+A. DATA STRUCTURE & COMPLEX OBJECT SCHEMA
+• Locate the database schema definition and TypeScript types/interfaces for our OSCE Stations (e.g., 'osce_cases', 'stations', 'checklists').
+• Analyze how the Checklist items (the checkboxes the actor/evaluator ticks during the simulation) are structured. Are they stored as a relational table (foreign keys), or nested inside a single JSONB column within the station row?
+• Document how fractional or binary grading weights (points per item) are saved within this schema.
+
+B. STATE MANAGEMENT IN THE CREATION FORM
+• Identify the file housing the multi-step or single-page Station Creation/Edition Form.
+• Detail how the form state is handled (e.g., native React 'useState', 'useReducer', or form libraries like 'react-hook-form'). 
+• Map how dynamic arrays of checklist steps are added or removed dynamically by the user before hitting save.
+
+C. BACKEND MUTATION & SECURITY SUPABASE LAYER
+• Trace the exact function or service file that pushes the payload to Supabase (e.g., '.insert()', '.update()').
+• Check if there are active Row Level Security (RLS) policies on these specific tables. If yes, extract and display them.
+• Locate where user roles (like 'admin') are fetched and checked during the dashboard mount (e.g., 'auth.users' metadata, a separate 'profiles' table, or a custom AuthContext state).
+
+OUTPUT REQUIREMENTS:
+Do NOT apply any code changes or database migrations yet. Provide a comprehensive, structured technical breakdown addressing points A, B, and C. Conclude with your exact step-by-step implementation strategy to safely split this admin architecture into a secure, dual-role dashboard.

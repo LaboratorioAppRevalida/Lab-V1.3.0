@@ -1,0 +1,303 @@
+FASE 3 — SISTEMA AUTOMÁTICO DE TÍTULOS (ENGINE + EQUIPAR + ADMIN)
+
+IMPORTANTE:
+Antes de alterar qualquer arquivo:
+
+1. Faça auditoria completa dos arquivos atuais relacionados a:
+
+   * titles
+   * user_titles
+   * levels
+   * gamification
+   * dashboard
+   * perfil público
+   * ranking
+   * admin
+   * sessões
+2. NÃO remover compatibilidade com sistema atual.
+3. NÃO quebrar:
+
+   * multiplayer
+   * realtime
+   * auth
+   * rankings
+   * conquistas
+   * missions
+   * sessions
+4. Todas as alterações devem ser incrementais e seguras.
+5. Zero TypeScript errors ao final.
+
+============================================================
+OBJETIVO GERAL
+==============
+
+Transformar títulos em um sistema automático e administrável.
+
+Usuário poderá:
+
+* desbloquear títulos automaticamente
+* possuir vários títulos
+* equipar apenas um
+* exibir título ativo no perfil/dashboard/ranking
+
+Admin poderá:
+
+* criar títulos
+* editar títulos
+* definir regras JSONB
+* criar títulos raros/evento/lendários
+
+============================================================
+FASE 3A — BANCO DE DADOS
+========================
+
+Criar migration:
+
+supabase/migrations/004_titles_conditions.sql
+
+Objetivo:
+Adicionar sistema automático de unlock via JSONB.
+
+SQL necessário:
+
+ALTER TABLE public.titles
+ADD COLUMN IF NOT EXISTS conditions jsonb;
+
+CREATE INDEX IF NOT EXISTS idx_titles_conditions
+ON public.titles
+USING gin (conditions);
+
+COMMENT ON COLUMN public.titles.conditions IS
+'Condições automáticas para desbloqueio do título. Mesmo formato do sistema de missões.';
+
+============================================================
+FASE 3B — TYPES
+===============
+
+Reutilizar EXACTAMENTE os tipos já existentes em:
+
+src/types/missions.ts
+
+NÃO duplicar tipos.
+
+Criar:
+src/types/titles.ts
+
+Com:
+
+export interface DbTitle {
+id: string;
+name: string;
+description: string;
+rarity: string;
+color: string;
+icon?: string | null;
+unlock_level?: number | null;
+event_id?: string | null;
+is_active: boolean;
+conditions?: MissionConditions | null;
+created_at: string;
+updated_at: string;
+}
+
+============================================================
+FASE 3C — TITLE SERVICE
+=======================
+
+Atualizar:
+src/lib/titleService.ts
+
+Adicionar:
+
+1. fetchActiveTitles()
+
+* apenas títulos ativos
+
+2. fetchUserTitles(userId)
+
+* busca títulos desbloqueados
+
+3. unlockTitle(userId, titleId)
+
+* cria em user_titles
+* ON CONFLICT DO NOTHING
+
+4. equipTitle(userId, titleId)
+   Fluxo:
+
+* desequipa todos do usuário
+* equipa apenas o selecionado
+* transação segura
+
+5. getEquippedTitle(userId)
+
+6. evaluateAutomaticTitles(userId, history)
+
+IMPORTANTE:
+Essa função deve:
+
+* buscar títulos ativos com conditions
+* ignorar títulos já desbloqueados
+* usar evaluateMissionProgress() existente
+* desbloquear automaticamente quando allDone === true
+
+============================================================
+FASE 3D — ENGINE AUTOMÁTICA
+===========================
+
+NÃO criar nova engine.
+
+Reutilizar:
+src/lib/missionRulesEngine.ts
+
+Objetivo:
+Títulos e missões compartilham o mesmo sistema de regras.
+
+============================================================
+FASE 3E — EXECUÇÃO AUTOMÁTICA
+=============================
+
+Local:
+TrainingContext.tsx
+OU
+ponto central já usado para salvar sessões.
+
+Após sessão concluída:
+
+executar:
+evaluateAutomaticTitles(user.id, updatedHistory)
+
+IMPORTANTE:
+
+* fire-and-forget
+* silencioso
+* nunca bloquear UX
+* nunca quebrar sessão
+
+============================================================
+FASE 3F — PERFIL / DASHBOARD
+============================
+
+Adicionar renderização do título equipado em:
+
+1. Dashboard
+2. Perfil público
+3. Ranking
+4. Cards de usuário
+5. Multiplayer/header se existir nome visível
+
+Exibir:
+
+* nome
+* cor
+* raridade
+* ícone (se houver)
+
+Visual:
+badge elegante estilo RPG/MMO.
+
+============================================================
+FASE 3G — MODAL “MEUS TÍTULOS”
+==============================
+
+Criar UI:
+
+* lista de títulos desbloqueados
+* botão “Equipar”
+* mostrar:
+
+  * raridade
+  * descrição
+  * data unlock
+  * equipado atualmente
+
+Permitir apenas 1 equipado.
+
+============================================================
+FASE 3H — ADMIN PANEL
+=====================
+
+Atualizar:
+AdminGamificacao.tsx
+
+Adicionar aba:
+“Títulos”
+
+Admin poderá:
+
+* criar
+* editar
+* remover
+* ativar/desativar
+* configurar rarity
+* cor
+* ícone
+* unlock_level
+* conditions
+
+REUTILIZAR editor de regras das missões.
+
+IMPORTANTE:
+O editor deve funcionar para títulos sem duplicar lógica.
+
+============================================================
+FASE 3I — RARIDADES
+===================
+
+Padronizar raridades:
+
+common
+rare
+epic
+legendary
+exclusive
+event
+
+Criar badges/cores coerentes.
+
+============================================================
+FASE 3J — COMPATIBILIDADE
+=========================
+
+Garantir:
+
+* títulos antigos continuam funcionando
+* unlock_level continua válido
+* sistema atual de level não quebra
+* user_titles existentes permanecem
+* nenhum dado apagado
+
+============================================================
+FASE 3K — SEGURANÇA
+===================
+
+Obrigatório:
+
+* zero any
+* zero loops infinitos
+* zero realtime leaks
+* zero queries duplicadas desnecessárias
+* transações seguras no equipTitle
+* RLS preservado
+
+============================================================
+FASE 3L — ENTREGA
+=================
+
+Ao final:
+
+1. rodar typecheck
+2. verificar console
+3. verificar HMR
+4. entregar relatório COMPLETO:
+
+   * arquivos criados
+   * arquivos alterados
+   * SQL necessário
+   * compatibilidade preservada
+   * riscos residuais
+   * próximos passos recomendados
+
+IMPORTANTE:
+Não simplifique.
+Implemente a arquitetura completa.

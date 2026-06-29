@@ -1,0 +1,27 @@
+SYSTEM INSTRUCTION: We are executing a strict, 100% COSMETIC-ONLY UI overhaul across the entire web application. 
+CRITICAL RULE: Do NOT move, rearrange, add, or delete any buttons, menus, inputs, navigation links, or layout structures. Do NOT alter any state, contexts, routing, hooks, or Supabase realtime functionality. Every element must stay in its exact current physical position. This edit is purely a visual theme update (colors, borders, backgrounds, and gloss physics) to match the attached reference image style ("Deep Cyber-Cyan Glassmorphism").
+
+Please update the UI components and global Tailwind/CSS styles using these precise design specifications:
+
+1. THE BACKGROUND ENVIRONMENT (The Ambient Glow):
+   • Replace standard dark/grey backgrounds with a luxurious deep teal/cyan dark environment. Use a base of `bg-[#03161a]` layering into `bg-[#051d22]`.
+   • Where global containers or main layouts are defined, introduce subtle, highly blurred cyan ambient backlights using absolute-positioned decorative elements with `bg-cyan-500/10 blur-[140px] pointer-events-none` to simulate the horizontal light beam passing behind the glass pane seen in the reference image.
+
+2. DEEP GLASS CONTAINERS (Lobby, Cards, Checklists, Station Panels, Modals):
+   • All container cards, list rows, profile blocks, and floating panels must discard their old backgrounds and use: `bg-[#081e24]/40 backdrop-blur-2xl`.
+   • Apply a crisp, micro-thin outer border to simulate high-end glass edge reflection: `border border-cyan-400/20` or `border-white/5`.
+   • Ensure smooth corner geometry across all major cards using `rounded-2xl` or `rounded-[1.5rem]`.
+
+3. ACTION BUTTONS (Satin Gradient Finish):
+   • Primary buttons (e.g., "Entrar", "Iniciar Simulação", "Enviar", "Salvar") must feature a beautiful vertical satin gradient: `bg-gradient-to-b from-cyan-400 to-cyan-600 text-white font-medium shadow-[0_0_20px_rgba(6,182,212,0.25)] transition-all hover:brightness-110`.
+   • Secondary or neutral buttons should use translucent dark glass text styles: `bg-white/5 border border-white/10 text-cyan-100 hover:bg-white/10`.
+
+4. INPUT FIELDS & TEXT AREAS (Sleek Dark Fields):
+   • Input boxes, search fields, and message text zones must map to a deep, inset dark-cyan frame: `bg-[#051317]/70 border border-cyan-500/30 text-white placeholder-cyan-700/60 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none`.
+
+5. TYPOGRAPHY & NEON CONTRAST:
+   • Main headers and absolute highlights must remain crisp white (`text-white`).
+   • Subtitles, descriptions, counters, and metadata labels should use a soft, glowing cyan-grey tone: `text-cyan-200/50` or `text-cyan-300/60`.
+   • System alerts or active badges (like the global chat notification dots) should use a rich cyan-neon glow effect.
+
+Execute these cosmetic enhancements seamlessly across all frontend UI files. Ensure the TypeScript compiler returns zero errors and the layout hierarchy remains identical to the current working version.

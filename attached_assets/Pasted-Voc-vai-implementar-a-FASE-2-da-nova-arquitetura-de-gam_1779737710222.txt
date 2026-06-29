@@ -1,0 +1,345 @@
+Você vai implementar a FASE 2 da nova arquitetura de gamificação do Revalida.
+
+IMPORTANTE:
+Esta fase NÃO deve quebrar:
+
+* sistema atual de missões
+* claims
+* XP
+* níveis
+* títulos
+* multiplayer
+* realtime
+* auth
+* rankings
+* uploads
+* sessões
+* progresso persistente recém implementado
+
+Tudo deve ser:
+
+* incremental
+* compatível
+* seguro
+* com fallback
+* sem regressões
+
+====================================================================
+OBJETIVO DA FASE 2
+==================
+
+Adicionar suporte a:
+
+* missões por grande área
+* missões compostas
+* múltiplas regras
+* condições dinâmicas
+
+EXEMPLOS QUE DEVEM PASSAR A SER POSSÍVEIS:
+
+1.
+
+"Conclua 10 estações de Cirurgia"
+
+2.
+
+"Conclua 2 estações de Pediatria e 1 de Clínica Médica"
+
+3.
+
+"Conclua 5 estações como paciente"
+
+4.
+
+"Conclua 3 estações multiplayer"
+
+A engine deve ser GENÉRICA e EXPANSÍVEL.
+
+====================================================================
+ARQUITETURA OBRIGATÓRIA
+=======================
+
+NÃO criar:
+
+* area1
+* area2
+* count1
+* count2
+* campos hardcoded
+
+O sistema deve usar:
+JSONB de regras dinâmicas.
+
+====================================================================
+PARTE 1 — BANCO DE DADOS
+========================
+
+Criar migration SQL idempotente:
+
+ALTER TABLE public.missions
+ADD COLUMN IF NOT EXISTS conditions jsonb;
+
+====================================================================
+FORMATO OFICIAL DAS CONDITIONS
+==============================
+
+A coluna conditions deve seguir este formato:
+
+{
+"rules": [
+{
+"type": "station_completed",
+"area": "Pediatria",
+"count": 2
+},
+{
+"type": "station_completed",
+"area": "Clinica Medica",
+"count": 1
+}
+]
+}
+
+====================================================================
+REGRAS SUPORTADAS NESTA FASE
+============================
+
+Implementar SOMENTE:
+
+1.
+
+station_completed
+
+Filtros suportados:
+
+* area
+* role
+* multiplayer
+
+EXEMPLOS:
+
+{
+"type": "station_completed",
+"area": "Cirurgia",
+"count": 10
+}
+
+{
+"type": "station_completed",
+"role": "paciente",
+"count": 5
+}
+
+{
+"type": "station_completed",
+"multiplayer": true,
+"count": 3
+}
+
+====================================================================
+PARTE 2 — TYPES
+===============
+
+Criar tipos centralizados:
+
+src/types/missions.ts
+
+Interfaces obrigatórias:
+
+MissionCondition
+MissionRule
+MissionConditions
+
+Sem any.
+Tipagem completa.
+
+====================================================================
+PARTE 3 — ENGINE
+================
+
+Criar:
+src/lib/missionRulesEngine.ts
+
+====================================================================
+FUNÇÕES OBRIGATÓRIAS
+====================
+
+1. evaluateMissionProgress()
+
+Recebe:
+
+* mission
+* session
+* currentProgress
+
+Retorna:
+
+* progresso atualizado
+* completed boolean
+
+2. evaluateRule()
+
+Avalia UMA regra.
+
+3. matchRule()
+
+Verifica:
+
+* área
+* role
+* multiplayer
+
+====================================================================
+IMPORTANTE
+==========
+
+A engine deve:
+
+* ignorar missões sem conditions
+* manter compatibilidade com trigger_type legado
+* não quebrar missões antigas
+
+====================================================================
+PARTE 4 — INTEGRAÇÃO COM SESSÕES
+================================
+
+Após conclusão de estação:
+
+o sistema deve:
+
+* buscar missões ativas
+* avaliar conditions
+* atualizar progresso no banco
+
+IMPORTANTE:
+NÃO quebrar o fluxo atual de XP.
+
+====================================================================
+PARTE 5 — ADMIN PANEL
+=====================
+
+Atualizar:
+AdminGamificacao.tsx
+
+Adicionar editor visual de regras.
+
+====================================================================
+UI OBRIGATÓRIA
+==============
+
+Botão:
+"+ Adicionar Regra"
+
+Cada regra deve permitir:
+
+* Tipo da regra
+* Área
+* Papel
+* Multiplayer
+* Quantidade
+
+====================================================================
+ÁREAS DISPONÍVEIS
+=================
+
+Usar as áreas reais existentes no app.
+
+Exemplo:
+
+* Clínica Médica
+* Pediatria
+* Cirurgia
+* GO
+* Preventiva
+* etc
+
+====================================================================
+PAPÉIS
+======
+
+* medico
+* paciente
+
+====================================================================
+MULTIPLAYER
+===========
+
+checkbox booleano
+
+====================================================================
+PARTE 6 — FRONTEND DO USUÁRIO
+=============================
+
+Conquistas.tsx
+
+As missões compostas devem renderizar corretamente.
+
+EXEMPLO VISUAL:
+
+Pediatria: 2/2
+Clínica Médica: 0/1
+
+OU:
+
+Cirurgia: 7/10
+
+====================================================================
+IMPORTANTE
+==========
+
+NÃO remover:
+
+* sistema legado
+* trigger_type
+* trigger_value
+
+Missões antigas devem continuar funcionando normalmente.
+
+====================================================================
+PARTE 7 — COMPATIBILIDADE
+=========================
+
+Missão SEM conditions:
+→ usa sistema antigo
+
+Missão COM conditions:
+→ usa nova engine
+
+====================================================================
+PARTE 8 — SEGURANÇA
+===================
+
+NÃO tocar:
+
+* realtime
+* multiplayer timers
+* uploads
+* auth
+* ranking
+* storage
+* news
+* resumos
+* checklist system
+
+====================================================================
+PARTE 9 — TYPECHECK
+===================
+
+Obrigatório:
+
+* zero TypeScript errors
+* sem any desnecessário
+* sem loops infinitos
+* sem queries duplicadas
+
+====================================================================
+PARTE 10 — ENTREGA ESPERADA
+===========================
+
+1. SQL criado
+2. Arquivos criados
+3. Arquivos alterados
+4. Explicação da arquitetura
+5. Garantia de compatibilidade
+6. Resultado do typecheck
+7. Verificação de runtime

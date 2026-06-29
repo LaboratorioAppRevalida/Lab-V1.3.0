@@ -1,0 +1,26 @@
+SYSTEM INSTRUCTION: We need to make the theme personalization persistent by connecting the state to Supabase and adding the missing "Salvar" button. The visual layout and two-column sandboxing must remain exactly as built.
+
+Please execute the following database backend and UI steps:
+
+1. DATABASE SETTING (Supabase SQL Integration):
+   • Create or verify a table named `platform_config` with the following schema:
+     - `id`: integer primary key (always 1 for global config)
+     - `bg_color`: text (default '#03161a')
+     - `glass_color`: text (default '#06181d')
+     - `accent_color`: text (default '#06b6d4')
+     - `bg_image_url`: text (nullable)
+     - `updated_at`: timestamp with time zone
+   • Ensure proper Row Level Security (RLS) is applied: Everyone (authenticated) can SELECT/READ, but only users with `is_admin` privileges can INSERT/UPDATE.
+
+2. ADD THE "SALVAR" BUTTON (UI Update in AdminPersonalizacao.tsx):
+   • In the left column (Controls), right below the "Restaurar padrões" area, add a prominent primary button.
+   • Title: "Salvar Alterações". Icon: Save/Check icon.
+   • Styling: Match our premium vertical gradient `bg-gradient-to-b from-cyan-400 to-cyan-600 text-white font-medium shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:brightness-110`.
+   • Include a loading spinner state (`isLoading`) that triggers while the save function communicates with Supabase.
+
+3. PERSISTENCE LOGIC (State & Handler Sync):
+   • Implement a `handleSave` function that updates or inserts (upsert) the current hex tokens and background image URL into the `platform_config` table (id: 1).
+   • Show a clean, translucent toast notification upon success ("Configurações de tema salvas com sucesso!").
+   • Update the core app wrapper (`AppShell.tsx` or global theme context) to fetch this row on mount so that the custom colors and background image are applied globally across all client views upon page load.
+
+Execute this logic cleanly, preserving zero compiler failures.

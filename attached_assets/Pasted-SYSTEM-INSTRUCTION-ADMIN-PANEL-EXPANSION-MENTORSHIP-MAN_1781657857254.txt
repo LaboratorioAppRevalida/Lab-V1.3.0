@@ -1,0 +1,31 @@
+SYSTEM INSTRUCTION - ADMIN PANEL EXPANSION: MENTORSHIP MANAGEMENT
+
+We need to create the administrative interface to manage the mentorship program. This will allow the admin team to promote mentors, update their profiles, and schedule individual or group slots directly from the UI.
+
+Please implement the following changes:
+
+1. TARGET ADMIN VIEW:
+   • Locate the main Admin Dashboard component (e.g., 'src/pages/Admin.tsx', 'src/pages/AdminDashboard.tsx', or the primary administrative layout view).
+   • Add a new main button/tab entry named "Mentorias" (with an icon like Award, Calendar, or ShieldAlert) inside the admin navigation layout.
+
+2. CREATING THE ADMIN MENTORSHIP INTERFACE:
+   When the "Mentorias" section is active, render a view split into 3 sub-tabs or management blocks:
+   
+   • SUB-TAB 1: "Médicos & Mentores"
+     - A list of users fetched from profiles.
+     - A toggle switch or action button to promote/demote a user to 'is_mentor'.
+     - Inline inputs or a simple modal form to edit that mentor's fields: 'mentor_specialty' and 'mentor_bio'.
+     - A save button invoking a profile update service.
+
+   • SUB-TAB 2: "Agendar Slots Individuais"
+     - A simple creation form: Dropdown selector populated with active mentors (is_mentor === true), a date/time picker for Start Time, and a date/time picker for End Time.
+     - A button "Criar Horário Aberto" that inserts a new row into 'mentorship_slots' via mentorshipService.
+
+   • SUB-TAB 3: "Criar Mentorias em Grupo"
+     - A creation form: Dropdown selector for the mentor, text input for Title, textarea for Description, date/time picker for Start/End, and a number input for Max Capacity.
+     - A button "Publicar Mentoria Coletiva" that inserts a new row into 'group_mentorships'.
+
+3. UPDATE THE SERVICE LAYER (mentorshipService.ts if needed):
+   • Ensure methods like 'updateMentorProfile(uid, data)', 'createIndividualSlot(mentorId, start, end)', and 'createGroupMentorship(data)' exist or are added to interact smoothly with Supabase.
+
+Ensure all layout structures seamlessly match the app's current cyberpunk UI token grid and check for zero TypeScript compile errors. Let me know once the admin mentorship view is live!

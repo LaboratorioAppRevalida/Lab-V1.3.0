@@ -1,0 +1,24 @@
+Olá, Agente. Vamos iniciar a Fase de Limpeza do sistema de personalização dinâmico antigo com o protocolo máximo de ZERO BREAKAGE (Não quebrar a aplicação). Faremos uma refatoração defensiva passo a passo para garantir que o app continue compilando e rodando a cada modificação.
+
+Por favor, siga estritamente este plano em ordem sequencial:
+
+PASSO 1: NEUTRALIZAÇÃO DO INLINE STYLE NO APPSHELL E DIRETÓRIOS DE AUTH
+Antes de mexer nos contextos, vamos remover a dominância dos estilos inline injetados.
+- Acesse 'src/components/AppShell.tsx': Remova qualquer propriedade 'style={{ backgroundColor: ... }}' ou similar que dependa do objeto de config antigo. No lugar do background inline, garanta que o container use estritamente a classe Tailwind 'bg-background' (ou a classe correspondente ao fundo padrão em index.css).
+- Acesse 'src/pages/Login.tsx', 'src/pages/EsqueciSenha.tsx' e 'src/pages/RedefinirSenha.tsx': Mapeie onde os elementos de background, modais e logos recebiam propriedades inline baseadas em hexadecimais (ex: 'style={{ backgroundColor: config.loginBgColor }}'). Remova esses 'style={{...}}' de cor e aplique fallbacks com classes utilitárias limpas do Tailwind (ex: 'bg-slate-50 dark:bg-zinc-950 text-zinc-900 dark:text-white').
+- Mantenha intactos todos os states de formulário, validações de e-mail/senha, handlers de submit e navegação.
+
+PASSO 2: DEPRECIAÇÃO SEGURA (SAFE MOCK) DOS CONTEXTOS OBSOLETOS
+Para evitar erros de importação ('Module not found') em dezenas de arquivos, não vamos deletar os arquivos do contexto ainda. Vamos neutralizar o comportamento interno deles:
+- Acesse 'src/contexts/PlatformThemeContext.tsx': Substitua a lógica de carregamento interna. Faça com que o hook 'usePlatformTheme()' e o context retornem apenas um objeto 'config' mockado, seguro e vazio (ou com strings vazias para as propriedades de cor), e que a função 'fetchPlatformConfig' resolva imediatamente sem fazer requisições pesadas ou loops.
+- Acesse 'src/lib/platformConfigService.ts': Esvazie completamente o corpo da função 'applyConfigToRoot()'. Ela deve continuar existindo como uma função declarada (para não quebrar chamadas antigas), mas seu corpo deve ser totalmente vazio: 'export const applyConfigToRoot = () => {};'. Isso corta imediatamente a injeção de CSS inline nocivo na tag raiz html.
+
+PASSO 3: DESACOPLAMENTO DA ÁRVORE PRINCIPAL (App.tsx)
+- Acesse 'src/App.tsx': Localize a tag envolvente '<PlatformThemeProvider>'. Se for seguro e não quebrar imports, remova-a mantendo apenas o '<ThemeProvider>' nativo (responsável pelo localStorage e a classe .dark/.light). Caso outros componentes filhos ainda dependam do import temporário do PlatformTheme, mantenha o provider, sabendo que ele agora já está neutralizado com o mock do Passo 2.
+
+PASSO 4: VALIDAÇÃO DE INTEGRIDADE
+Ao concluir estes três passos:
+1. Execute o comando de compilação/build do projeto para garantir que o TypeScript e o Vite/Bundler não reportem nenhum erro de sintaxe ou de referência órfã.
+2. Relate-me quais arquivos foram modificados com sucesso e confirme se o build terminou com status zero erros.
+
+Não exclua nenhum arquivo fisicamente nesta etapa. Proceda estritamente com a neutralização segura.

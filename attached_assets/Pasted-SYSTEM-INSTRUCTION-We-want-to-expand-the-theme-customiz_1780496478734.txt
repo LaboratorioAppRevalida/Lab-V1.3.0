@@ -1,0 +1,27 @@
+SYSTEM INSTRUCTION: We want to expand the theme customization features by adding advanced background image controls (Opacity, Blur, Zoom/Scale, and X/Y Position offsets) into the database and admin dashboard UI. The overall layout and sandboxing mechanism must remain 100% identical.
+
+Please strictly execute these backend and frontend upgrades:
+
+1. DATABASE EXTENSION (Supabase Migration):
+   • In the `platform_config` table, safely add these new columns with default values if they don't exist:
+     - `bg_image_opacity` (integer, default: 20)
+     - `bg_image_blur` (integer, default: 0)
+     - `bg_image_scale` (integer, default: 100)
+     - `bg_image_x` (integer, default: 50)
+     - `bg_image_y` (integer, default: 50)
+   • Update the `platformConfigService.ts` mapping layer and the `PlatformThemeContext` to handle and share these new fields globally.
+
+2. DASHBOARD UI SLIDERS (AdminPersonalizacao.tsx Update):
+   • In the left column under the background upload sector, add a group card called "Ajustes Avançados da Imagem".
+   • Implement 5 responsive range sliders (`<input type="range">`) styled cleanly in cyan accents:
+     - Opacidade da Imagem (Range: 0 to 100, maps to opacity)
+     - Desfoque / Blur (Range: 0 to 20, maps to backdrop/css blur px)
+     - Zoom / Escala (Range: 100 to 200, maps to transform scale)
+     - Posição Horizontal X (Range: 0 to 100, maps to bg-position-x %)
+     - Posição Vertical Y (Range: 0 to 100, maps to bg-position-y %)
+   • Ensure all sliders update the local state instantly, allowing the right-column Sandbox Preview to reflect the live positioning, scale, and opacity shifts in real-time.
+
+3. GLOBAL SHELL APPLICATION (AppShell.tsx Consumer):
+   • Update the background layer in `AppShell.tsx` so that these persisted style values inject directly into the live background image style bindings (e.g., combining `backgroundPosition: "${config.bgImageX}% ${config.bgImageY}%"`, `opacity: config.bgImageOpacity / 100`, `filter: blur(${config.bgImageBlur}px)`, and `transform: scale(${config.bgImageScale / 100})` effectively without breaking responsiveness).
+
+Maintain strict compile-ready TypeScript code with zero layout regressions.

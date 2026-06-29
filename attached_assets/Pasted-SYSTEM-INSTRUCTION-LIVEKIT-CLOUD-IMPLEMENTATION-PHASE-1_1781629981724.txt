@@ -1,0 +1,26 @@
+SYSTEM INSTRUCTION - LIVEKIT CLOUD IMPLEMENTATION (PHASE 1):
+Fantastic architectural audit. Your diagnostic maps the system perfectly. Now, let's implement the LiveKit Cloud real-time audio infrastructure based on your recommended mount points.
+
+Please execute the following implementation steps with strict precision:
+
+1. BACKEND TOKEN GENERATION:
+   • Create a secure API route or server function (e.g., /api/livekit/token or a serverless helper) using 'livekit-server-sdk'.
+   • It must accept 'roomName' (which will be the multiplayer_session.id UUID) and 'participantName' (the user's identity/role).
+   • Generate a LiveKit AccessToken utilizing the process.env variables (LIVEKIT_API_KEY and LIVEKIT_API_SECRET).
+   • Grant permissions: roomJoin, audioPlayback, audioRecord. Set expiration to 2 hours.
+
+2. GLOBAL LIVEKIT AUDIO CONTEXT / PROVIDER:
+   • Create a clean React Context provider (e.g., LiveKitAudioContext.tsx) to wrap the training routes.
+   • This context will hold the active LiveKit room connection, state (isConnected, isMuted), and the logic to request the token and connect.
+   • CRITICAL RULE: When joining a room for the first time, the local audio track must be MUTED BY DEFAULT (microphone disabled on entry). The user must explicitly click a button to unmute.
+
+3. WAITING ROOM INTEGRATION (MedicoEspera.tsx):
+   • As soon as both users hit the Waiting Room (status === "waiting"), trigger the LiveKit connection inside our new context using the activeSessionId as the room name.
+   • Add a stunning Glassmorphic floating microphone toggle button to the MedicoEspera.tsx view. One single click should toggle local audio mute/unmute seamlessly. Show a clear visual indicator (e.g., Muted 🔇 / Active 🎙️).
+
+4. ACTIVE STATION TRANSITION (Estacao.tsx):
+   • Because the connection is managed in the parent Context, moving from /treino/espera to /treino/estacao must NOT drop the call. The voice communication must remain continuous and uninterrupted.
+   • Mount the same glassmorphic microphone toggle controls inside Estacao.tsx.
+   • If a user performs a hard refresh on Estacao.tsx, ensure your initialization logic respects the 'isRestoringSessionRef.current' guard. Only fetch the token and re-join the LiveKit room AFTER the activeSessionId is fully recovered from the database.
+
+Ensure strict TypeScript typing throughout, zero compilation errors, and handle edge-case failures gracefully with elegant alert toasts without crashing the active UI timers.

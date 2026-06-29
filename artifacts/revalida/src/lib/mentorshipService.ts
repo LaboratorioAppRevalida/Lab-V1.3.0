@@ -1,0 +1,279 @@
+import { supabase } from "@/lib/supabase";
+
+export interface MentorWithRating {
+  id: string;
+  name: string;
+  display_name: string | null;
+  mentor_bio: string | null;
+  mentor_specialty: string | null;
+  mentor_avatar_url: string | null;
+  avg_rating: number;
+  review_count: number;
+}
+
+export interface MentorshipSlot {
+  id: string;
+  mentor_id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+}
+
+export interface GroupMentorship {
+  id: string;
+  mentor_id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string;
+  max_capacity: number;
+  current_bookings: number;
+  mentor: {
+    name: string;
+    display_name: string | null;
+    mentor_avatar_url: string | null;
+  };
+}
+
+export async function listMentorsWithRatings(): Promise<MentorWithRating[]> {
+  const { data: mentors, error } = await supabase
+    .from("profiles")
+    .select("id, name, display_name, mentor_bio, mentor_specialty, mentor_avatar_url")
+    .eq("is_mentor", true);
+
+  if (error) throw error;
+  if (!mentors || mentors.length === 0) return [];
+
+  const mentorIds = mentors.map((m) => m.id);
+
+  const { data: reviews, error: revError } = await supabase
+    .from("mentor_reviews")
+    .select("mentor_id, rating")
+    .in("mentor_id", mentorIds);
+
+  if (revError) throw revError;
+
+  const ratingMap: Record<string, { sum: number; count: number }> = {};
+  for (const r of reviews ?? []) {
+    if (!ratingMap[r.mentor_id]) ratingMap[r.mentor_id] = { sum: 0, count: 0 };
+    ratingMap[r.mentor_id].sum += r.rating;
+    ratingMap[r.mentor_id].count += 1;
+  }
+
+  return mentors.map((m) => {
+    const stats = ratingMap[m.id] ?? { sum: 0, count: 0 };
+    return {
+      ...m,
+      avg_rating: stats.count > 0 ? Math.round((stats.sum / stats.count) * 10) / 10 : 0,
+      review_count: stats.count,
+    };
+  });
+}
+
+export async function getMentorAvailability(mentorId: string): Promise<MentorshipSlot[]> {
+  const { data, error } = await supabase
+    .from("mentorship_slots")
+    .select("id, mentor_id, start_time, end_time, status")
+    .eq("mentor_id", mentorId)
+    .eq("status", "available")
+    .gte("start_time", new Date().toISOString())
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function listGroupMentorships(): Promise<GroupMentorship[]> {
+  const { data, error } = await supabase
+    .from("group_mentorships")
+    .select(
+      `id, mentor_id, title, description, start_time, end_time, max_capacity, current_bookings,
+       mentor:profiles!group_mentorships_mentor_id_fkey(name, display_name, mentor_avatar_url)`
+    )
+    .gte("start_time", new Date().toISOString())
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown[]).map((row) => {
+    const r = row as Record<string, unknown>;
+    const mentorRaw = Array.isArray(r.mentor) ? r.mentor[0] : r.mentor;
+    const mentor = (mentorRaw ?? {}) as { name: string; display_name: string | null; mentor_avatar_url: string | null };
+    return {
+      id: r.id as string,
+      mentor_id: r.mentor_id as string,
+      title: r.title as string,
+      description: r.description as string | null,
+      start_time: r.start_time as string,
+      end_time: r.end_time as string,
+      max_capacity: r.max_capacity as number,
+      current_bookings: r.current_bookings as number,
+      mentor,
+    };
+  });
+}
+
+export async function updateMentorProfile(
+  uid: string,
+  data: {
+    is_mentor?: boolean;
+    mentor_bio?: string | null;
+    mentor_specialty?: string | null;
+    mentor_avatar_url?: string | null;
+  }
+): Promise<void> {
+  const { error } = await supabase.from("profiles").update(data).eq("id", uid);
+  if (error) throw error;
+}
+
+export async function createIndividualSlot(
+  mentorId: string,
+  startTime: string,
+  endTime: string
+): Promise<void> {
+  const { error } = await supabase.from("mentorship_slots").insert({
+    mentor_id: mentorId,
+    start_time: startTime,
+    end_time: endTime,
+    status: "available",
+  });
+  if (error) throw error;
+}
+
+export async function createGroupMentorship(data: {
+  mentor_id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string;
+  max_capacity: number;
+}): Promise<void> {
+  const { error } = await supabase.from("group_mentorships").insert({
+    ...data,
+    current_bookings: 0,
+  });
+  if (error) throw error;
+}
+
+export interface AdminSlot extends MentorshipSlot {
+  mentor_name: string;
+}
+
+export async function listAllSlotsAdmin(): Promise<AdminSlot[]> {
+  const { data, error } = await supabase
+    .from("mentorship_slots")
+    .select(
+      `id, mentor_id, start_time, end_time, status,
+       mentor:profiles!mentorship_slots_mentor_id_fkey(name, display_name)`
+    )
+    .order("start_time", { ascending: false });
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown[]).map((row) => {
+    const r = row as Record<string, unknown>;
+    const mentorRaw = Array.isArray(r.mentor) ? r.mentor[0] : r.mentor;
+    const m = (mentorRaw ?? {}) as { name?: string; display_name?: string | null };
+    return {
+      id: r.id as string,
+      mentor_id: r.mentor_id as string,
+      start_time: r.start_time as string,
+      end_time: r.end_time as string,
+      status: r.status as string,
+      mentor_name: m.display_name || m.name || "—",
+    };
+  });
+}
+
+export async function deleteIndividualSlot(slotId: string): Promise<void> {
+  const { error } = await supabase.from("mentorship_slots").delete().eq("id", slotId);
+  if (error) throw error;
+}
+
+export interface AdminGroupMentorship {
+  id: string;
+  mentor_id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string;
+  max_capacity: number;
+  current_bookings: number;
+  mentor_name: string;
+}
+
+export async function listAllGroupMentorshipsAdmin(): Promise<AdminGroupMentorship[]> {
+  const { data, error } = await supabase
+    .from("group_mentorships")
+    .select(
+      `id, mentor_id, title, description, start_time, end_time, max_capacity, current_bookings,
+       mentor:profiles!group_mentorships_mentor_id_fkey(name, display_name)`
+    )
+    .order("start_time", { ascending: false });
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown[]).map((row) => {
+    const r = row as Record<string, unknown>;
+    const mentorRaw = Array.isArray(r.mentor) ? r.mentor[0] : r.mentor;
+    const m = (mentorRaw ?? {}) as { name?: string; display_name?: string | null };
+    return {
+      id: r.id as string,
+      mentor_id: r.mentor_id as string,
+      title: r.title as string,
+      description: r.description as string | null,
+      start_time: r.start_time as string,
+      end_time: r.end_time as string,
+      max_capacity: r.max_capacity as number,
+      current_bookings: r.current_bookings as number,
+      mentor_name: m.display_name || m.name || "—",
+    };
+  });
+}
+
+export async function updateGroupMentorship(
+  groupId: string,
+  data: {
+    title?: string;
+    description?: string | null;
+    start_time?: string;
+    end_time?: string;
+    max_capacity?: number;
+  }
+): Promise<void> {
+  const { error } = await supabase.from("group_mentorships").update(data).eq("id", groupId);
+  if (error) throw error;
+}
+
+export async function deleteGroupMentorship(groupId: string): Promise<void> {
+  const { error } = await supabase.from("group_mentorships").delete().eq("id", groupId);
+  if (error) throw error;
+}
+
+export async function submitMentorReview(
+  mentorId: string,
+  studentId: string,
+  rating: number,
+  comment: string
+): Promise<void> {
+  const { error } = await supabase.from("mentor_reviews").insert({
+    mentor_id: mentorId,
+    student_id: studentId,
+    rating,
+    comment,
+  });
+
+  if (error) {
+    const code = String(error.code ?? "");
+    if (code.startsWith("23505")) {
+      const { error: upError } = await supabase
+        .from("mentor_reviews")
+        .update({ rating, comment })
+        .eq("mentor_id", mentorId)
+        .eq("student_id", studentId);
+      if (upError) throw upError;
+      return;
+    }
+    throw error;
+  }
+}

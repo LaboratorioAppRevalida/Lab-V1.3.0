@@ -1,0 +1,103 @@
+Vamos implementar o sistema de toast/notificação de missão completada.
+
+IMPORTANTE:
+
+* NÃO usar alert().
+* NÃO criar modal bloqueante.
+* NÃO quebrar o sistema reativo recém criado.
+* NÃO recalcular missões no frontend.
+* NÃO tocar no missionProgressEngine.
+* NÃO adicionar bibliotecas pesadas novas.
+* NÃO criar spam de notificações.
+
+Objetivo:
+quando refreshMissionProgress detectar que uma missão mudou de:
+completed: false → completed: true
+
+mostrar um toast elegante e não intrusivo.
+
+REQUISITOS:
+
+1. Toast deve exibir:
+
+* nome da missão
+* XP da recompensa
+* badge/ícone de missão concluída
+* animação leve
+* botão opcional "Resgatar"
+
+2. Detectar transição:
+   false → true
+   comparando:
+
+* progresso anterior
+* progresso novo
+
+3. Toast NÃO deve reaparecer:
+
+* em refresh
+* em mount
+* em troca de aba
+* em reload
+
+Apenas na primeira conclusão detectada em runtime.
+
+4. Implementar:
+   completedMissionIdsRef
+
+para controlar sessões atuais de toast.
+
+5. Máximo:
+
+* 1 toast simultâneo
+* fila simples se múltiplas missões completarem
+
+6. Integrar com:
+
+* refreshMissionProgress()
+* missions-updated
+* focus/visibility sem duplicar toast
+
+7. Se missão já estiver:
+   claimed = true
+   NÃO mostrar toast.
+
+8. Criar componente reutilizável:
+   MissionCompletedToast.tsx
+
+9. Visual:
+
+* compatível com tema atual
+* aparência premium/discreta
+* animação suave
+* mobile friendly
+
+10. Toast deve desaparecer automaticamente:
+    4–6 segundos
+
+11. Adicionar DEV logs silenciosos:
+    [MissionToast] completed:
+
+* mission slug
+* xp
+* source trigger
+
+12. Garantir:
+
+* zero loops
+* zero memory leaks
+* zero duplicações
+* zero conflitos com realtime
+* zero impacto multiplayer
+* zero TypeScript errors
+
+13. Ao finalizar:
+
+* rodar typecheck
+* verificar runtime
+* listar arquivos criados/alterados
+* confirmar que:
+
+  * engine autoritativa continua intacta
+  * títulos automáticos continuam funcionando
+  * debounce/refetch continuam funcionando

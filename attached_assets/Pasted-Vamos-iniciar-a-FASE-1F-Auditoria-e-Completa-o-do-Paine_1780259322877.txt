@@ -1,0 +1,124 @@
+Vamos iniciar a FASE 1F — Auditoria e Completação do Painel Administrativo de Eventos.
+
+IMPORTANTE:
+
+* NÃO alterar missionProgressEngine.
+* NÃO alterar sistema de títulos.
+* NÃO alterar sistema de claims já implementado.
+* NÃO alterar multiplayer.
+* NÃO alterar realtime.
+* NÃO alterar rankings.
+* NÃO alterar auth.
+* NÃO alterar TrainingContext.
+* NÃO alterar tabelas já existentes.
+* NÃO criar migrations novas nesta fase.
+* NÃO quebrar nenhum fluxo já funcionando.
+
+Objetivo:
+
+Auditar o painel administrativo de gamificação e garantir que os eventos possam ser totalmente gerenciados pela interface administrativa, sem SQL manual.
+
+PASSO 1 — AUDITORIA
+
+Antes de escrever qualquer código:
+
+Verificar exatamente o que já existe para:
+
+* events
+* event_rewards
+* event_missions
+
+Responder com:
+
+1. O que já funciona
+2. O que está incompleto
+3. O que está ausente
+4. O que exige SQL manual atualmente
+
+PASSO 2 — EVENTOS
+
+Confirmar se o admin consegue:
+
+* criar evento
+* editar evento
+* excluir evento
+* ativar/desativar evento
+* definir descrição
+* definir datas
+* definir banner
+
+Se algo estiver faltando:
+
+implementar.
+
+PASSO 3 — MISSÕES DO EVENTO
+
+Confirmar se o admin consegue:
+
+* vincular missões existentes ao evento
+* remover missões do evento
+* visualizar quantidade de missões
+
+Se algo estiver faltando:
+
+implementar.
+
+PASSO 4 — RECOMPENSAS DO EVENTO
+
+Confirmar se o admin consegue:
+
+* adicionar recompensa XP
+* adicionar recompensa de título
+* editar recompensa
+* remover recompensa
+* visualizar recompensas existentes
+
+Se algo estiver faltando:
+
+implementar.
+
+PASSO 5 — UX ADMIN
+
+Adicionar indicadores visuais:
+
+Evento:
+
+* Ativo
+* Agendado
+* Encerrado
+
+Mostrar:
+
+* quantidade de missões
+* quantidade de recompensas
+
+na listagem.
+
+PASSO 6 — SEGURANÇA
+
+Garantir:
+
+* apenas admin acessa edição
+* sem duplicação de vínculos
+* sem duplicação de recompensas
+* validação de datas
+
+PASSO 7 — VALIDAÇÃO
+
+Ao finalizar:
+
+* rodar typecheck
+* verificar runtime
+* listar arquivos alterados
+* confirmar:
+
+  * 0 erros TypeScript
+  * 0 regressões
+  * sistema de eventos continua funcional
+  * sistema de missões continua funcional
+  * sistema de títulos continua funcional
+  * sistema de claims continua funcional
+
+NÃO implementar novas funcionalidades fora deste escopo.
+
+Primeiro faça a auditoria completa e só depois implemente o que estiver faltando.

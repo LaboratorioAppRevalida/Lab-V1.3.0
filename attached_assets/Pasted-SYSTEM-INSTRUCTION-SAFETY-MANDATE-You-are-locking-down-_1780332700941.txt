@@ -1,0 +1,17 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: You are locking down gamification tables to prevent badge/title forgery. Do not break the frontend achievements display pages or profile level indicators. Maintain absolute backward compatibility for reading earned awards.
+
+TASK OVERVIEW:
+Harden Row-Level Security (RLS) for gamification tables (`public.user_titles`, `public.user_achievements`, and `public.user_event_rewards`). Currently, any logged-in user can execute an INSERT/UPDATE via the client API to give themselves unearned badges or premium titles.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Inspect the tables `user_titles`, `user_achievements`, and `user_event_rewards` in the Supabase schema. Ensure RLS is enabled for all three.
+2. Create a PostgreSQL migration script named `supabase/migrations/013_secure_gamification_tables_rls.sql`.
+3. Inside the script, drop any permissive write policies (INSERT, UPDATE, DELETE) on these three tables.
+4. Establish the following strict security rules:
+   - SELECT: Every authenticated user can read rewards (so they can see their own badges and look at other doctors' badges on their public profiles).
+   - INSERT/UPDATE/DELETE: Strictly restricted to Administrators (`public.is_admin_check()`). Regular users cannot write directly to these tables under any circumstance via the client-side API.
+5. In your frontend inspection, review if the application currently awards badges by making a direct `supabase.from('user_achievements').insert(...)` call from the React client. If it does, refactor this flow to delegate writing to a secure RPC or note in your response that rewards must henceforth be handled by database triggers based on the `sessions` table (e.g., an automated trigger that injects a row when a doctor reaches a milestone).
+6. Ensure the application compiles cleanly without breaking the profile rewards UI.
+
+OUTPUT REQUIRED:
+Provide the complete SQL script for `013_secure_gamification_tables_rls.sql`. Explain how this intervention protects the value of your platform's digital credentials from client-side exploitation.
