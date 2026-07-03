@@ -250,6 +250,43 @@ export async function deleteGroupMentorship(groupId: string): Promise<void> {
   if (error) throw error;
 }
 
+export interface BookedStudentSlot {
+  slotId: string;
+  start_time: string;
+  end_time: string;
+  studentId: string;
+  studentName: string;
+  studentAvatar: string | null;
+}
+
+export async function listMyBookedStudents(mentorId: string): Promise<BookedStudentSlot[]> {
+  const { data, error } = await supabase
+    .from("mentorship_slots")
+    .select(
+      `id, start_time, end_time, student_id,
+       student:profiles!mentorship_slots_student_id_fkey(id, name, display_name, avatar_url)`
+    )
+    .eq("mentor_id", mentorId)
+    .eq("status", "booked")
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown[]).map((row) => {
+    const r = row as Record<string, unknown>;
+    const studentRaw = Array.isArray(r.student) ? r.student[0] : r.student;
+    const s = (studentRaw ?? {}) as { id?: string; name?: string; display_name?: string | null; avatar_url?: string | null };
+    return {
+      slotId:        r.id as string,
+      start_time:    r.start_time as string,
+      end_time:      r.end_time as string,
+      studentId:     (s.id ?? r.student_id) as string,
+      studentName:   s.display_name?.trim() || s.name?.trim() || "Aluno",
+      studentAvatar: s.avatar_url ?? null,
+    };
+  });
+}
+
 export async function submitMentorReview(
   mentorId: string,
   studentId: string,
