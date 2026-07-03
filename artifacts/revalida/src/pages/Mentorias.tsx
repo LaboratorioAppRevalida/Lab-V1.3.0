@@ -289,7 +289,7 @@ export default function MentoriasPage() {
                         </span>
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-cyan-200/40">
                           <Clock className="w-3.5 h-3.5" />
-                          {session.duration_minutes} min
+                          {Math.round((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 60000)} min
                         </div>
                       </div>
                       <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">{session.title}</h3>
@@ -304,7 +304,7 @@ export default function MentoriasPage() {
                       <div className="min-w-0">
                         <p className="text-[11px] font-bold text-slate-400 dark:text-cyan-200/30 uppercase tracking-wider">Agendado para</p>
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-                          {new Date(session.scheduled_to).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                          {new Date(session.start_time).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                         </p>
                       </div>
                       <button
