@@ -205,7 +205,7 @@ export default function MentoriasPage() {
                 {mentors.map((mentor) => (
                   <div
                     key={mentor.id}
-                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group aspect-[2/1] min-h-[180px]"
+                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group min-h-[180px]"
                   >
                     <div className="space-y-3">
                       <div className="flex items-start gap-4">
@@ -280,7 +280,7 @@ export default function MentoriasPage() {
                 {groupSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm relative overflow-hidden aspect-[2/1] min-h-[180px]"
+                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm relative overflow-hidden min-h-[180px]"
                   >
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
