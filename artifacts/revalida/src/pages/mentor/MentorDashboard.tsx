@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   UserCheck, Calendar, Users, Save, Plus, Trash2,
   Loader2, Clock, X, Check, ChevronRight, BookOpen, AlertTriangle,
-  GraduationCap, MessageCircle, User,
+  GraduationCap, MessageCircle, User, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -726,49 +726,92 @@ function TabAlunos({ userId }: { userId: string }) {
             const timeStr = start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
             const endStr  = new Date(slot.end_time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
+            const hasReview = slot.rating !== undefined;
+
             return (
               <motion.div
                 key={slot.slotId}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`${cardCls} p-4 flex items-center gap-4`}
+                className={`${cardCls} p-4 flex flex-col gap-3`}
               >
-                <StudentAvatar name={slot.studentName} url={slot.studentAvatar} />
+                {/* Top row: avatar + info + chat button */}
+                <div className="flex items-center gap-4">
+                  <StudentAvatar name={slot.studentName} url={slot.studentAvatar} />
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-900 dark:text-white text-sm truncate">
-                      {slot.studentName}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                      isPast
-                        ? "bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-cyan-200/30 border-slate-200 dark:border-white/10"
-                        : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
-                    }`}>
-                      {isPast ? "Realizado" : "Agendado"}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm truncate">
+                        {slot.studentName}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                        isPast
+                          ? "bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-cyan-200/30 border-slate-200 dark:border-white/10"
+                          : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
+                      }`}>
+                        {isPast ? "Realizado" : "Agendado"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-cyan-200/40">
+                      <Clock className="w-3.5 h-3.5 shrink-0" />
+                      <span className="capitalize">{dateStr}</span>
+                      <span className="opacity-40">·</span>
+                      <span>{timeStr}</span>
+                      <ChevronRight className="w-3 h-3 opacity-40" />
+                      <span>{endStr}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-cyan-200/40">
-                    <Clock className="w-3.5 h-3.5 shrink-0" />
-                    <span className="capitalize">{dateStr}</span>
-                    <span className="opacity-40">·</span>
-                    <span>{timeStr}</span>
-                    <ChevronRight className="w-3 h-3 opacity-40" />
-                    <span>{endStr}</span>
-                  </div>
+
+                  <button
+                    onClick={() => openChat(slot.studentId)}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0
+                      bg-gradient-to-r from-cyan-600 to-blue-600 text-white
+                      shadow-sm shadow-cyan-500/20 hover:shadow-md hover:shadow-cyan-500/30
+                      hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Abrir Chat
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => openChat(slot.studentId)}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0
-                    bg-gradient-to-r from-cyan-600 to-blue-600 text-white
-                    shadow-sm shadow-cyan-500/20 hover:shadow-md hover:shadow-cyan-500/30
-                    hover:scale-[1.03] active:scale-[0.98] transition-all duration-200"
-                >
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  Abrir Chat
-                </button>
+                {/* Review row */}
+                <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                  {hasReview ? (
+                    <div className="flex flex-col gap-2">
+                      {/* Stars + numeric score */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star
+                              key={n}
+                              className={`w-3.5 h-3.5 transition-colors ${
+                                n <= (slot.rating ?? 0)
+                                  ? "text-amber-400 fill-amber-400"
+                                  : "text-slate-200 dark:text-white/10 fill-slate-200 dark:fill-white/10"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs font-bold text-amber-500 dark:text-amber-400">
+                          {(slot.rating ?? 0).toFixed(1)}<span className="font-normal text-slate-400 dark:text-cyan-200/30">/5</span>
+                        </span>
+                      </div>
+                      {/* Comment bubble */}
+                      {slot.comment && (
+                        <blockquote className="relative pl-3 text-xs italic leading-relaxed text-slate-600 dark:text-cyan-200/50
+                          border-l-2 border-amber-300 dark:border-amber-400/40">
+                          "{slot.comment}"
+                        </blockquote>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-cyan-200/25">
+                      <Star className="w-3.5 h-3.5 shrink-0" />
+                      <span>Aguardando avaliação do aluno</span>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             );
           })}

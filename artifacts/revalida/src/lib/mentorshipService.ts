@@ -257,6 +257,8 @@ export interface BookedStudentSlot {
   studentId: string;
   studentName: string;
   studentAvatar: string | null;
+  rating?: number;
+  comment?: string;
 }
 
 export async function listMyBookedStudents(mentorId: string): Promise<BookedStudentSlot[]> {
@@ -272,7 +274,7 @@ export async function listMyBookedStudents(mentorId: string): Promise<BookedStud
 
   if (error) throw error;
 
-  return ((data ?? []) as unknown[]).map((row) => {
+  const slots: BookedStudentSlot[] = ((data ?? []) as unknown[]).map((row) => {
     const r = row as Record<string, unknown>;
     const studentRaw = Array.isArray(r.student) ? r.student[0] : r.student;
     const s = (studentRaw ?? {}) as { id?: string; name?: string; display_name?: string | null; avatar_url?: string | null };
@@ -285,6 +287,26 @@ export async function listMyBookedStudents(mentorId: string): Promise<BookedStud
       studentAvatar: s.avatar_url ?? null,
     };
   });
+
+  if (slots.length === 0) return slots;
+
+  const studentIds = [...new Set(slots.map((s) => s.studentId).filter(Boolean))];
+  const { data: reviews } = await supabase
+    .from("mentor_reviews")
+    .select("student_id, rating, comment")
+    .eq("mentor_id", mentorId)
+    .in("student_id", studentIds);
+
+  const reviewMap: Record<string, { rating: number; comment: string }> = {};
+  for (const rev of reviews ?? []) {
+    const r = rev as { student_id: string; rating: number; comment: string };
+    reviewMap[r.student_id] = { rating: r.rating, comment: r.comment };
+  }
+
+  return slots.map((slot) => ({
+    ...slot,
+    ...(reviewMap[slot.studentId] ?? {}),
+  }));
 }
 
 export async function submitMentorReview(
