@@ -25,6 +25,8 @@ import Perfil from "@/pages/Perfil";
 import NotFound from "@/pages/not-found";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ColaboradorRoute } from "@/components/ColaboradorRoute";
+import { MentorRoute } from "@/components/MentorRoute";
+import MentorDashboard from "@/pages/mentor/MentorDashboard";
 import AdminHome from "@/pages/admin/AdminHome";
 import ColaboradorHome from "@/pages/colaborador/ColaboradorHome";
 import ColaboradorChecklistsList from "@/pages/colaborador/ColaboradorChecklistsList";
@@ -274,6 +276,15 @@ function Router() {
         <SubscribedRoute>
           <Estacao />
         </SubscribedRoute>
+      </Route>
+
+      {/* ── Mentor portal ────────────────────────────────────────────────── */}
+      <Route path="/mentor/painel">
+        <MentorRoute>
+          <AppShell>
+            <MentorDashboard />
+          </AppShell>
+        </MentorRoute>
       </Route>
 
       {/* ── Colaborador portal ───────────────────────────────────────────── */}

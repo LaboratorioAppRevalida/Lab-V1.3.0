@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Briefcase,
   Users,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -25,7 +26,7 @@ import { fetchUserAchievements } from "@/lib/achievementService";
 import { getUserTitles } from "@/lib/titleService";
 
 export default function Inicio() {
-  const { user, profile, isAdmin, isColaborador } = useAuth();
+  const { user, profile, isAdmin, isColaborador, isMentor } = useAuth();
   const [, setLocation] = useLocation();
   const { equippedTitle } = useEquippedTitle(user?.id);
 
@@ -72,13 +73,17 @@ export default function Inicio() {
     if (isColaborador) {
       grid.unshift({ title: "Colaborador", icon: Briefcase, subtitle: "Enviar estações" });
     }
+    if (isMentor) {
+      grid.unshift({ title: "Painel do Mentor", icon: UserCheck, subtitle: "Sua agenda e alunos" });
+    }
     return grid;
-  }, [isAdmin, isColaborador]);
+  }, [isAdmin, isColaborador, isMentor]);
 
   const handleCtaClick = () => setLocation("/treino");
 
   const handleGridClick = (title: string) => {
     switch (title) {
+      case "Painel do Mentor":  return setLocation("/mentor/painel");
       case "Colaborador":       return setLocation("/colaborador");
       case "Painel Admin":      return setLocation("/admin");
       case "Resumos":           return setLocation("/resumos");

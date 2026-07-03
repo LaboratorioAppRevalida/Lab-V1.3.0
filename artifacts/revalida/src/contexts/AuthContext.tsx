@@ -33,6 +33,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isColaborador: boolean;
+  isMentor: boolean;
   isLoading: boolean;
   isSuspended: boolean;
   login: (email: string, senha: string) => Promise<boolean>;
@@ -524,6 +525,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!sbUser;
   const isAdmin = !!(profile?.is_admin ?? (user?.role === "admin"));
   const isColaborador = !isAdmin && !!(profile?.is_colaborador ?? (user?.role === "colaborador"));
+  const isMentor = !!(profile?.is_mentor);
   const isSubscribed = isAdmin || isColaborador || subscription?.status === "ativo";
 
   const value: AuthContextType = {
@@ -532,6 +534,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated,
     isAdmin,
     isColaborador,
+    isMentor,
     isLoading,
     isSuspended,
     login,

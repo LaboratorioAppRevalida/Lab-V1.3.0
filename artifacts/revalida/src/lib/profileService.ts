@@ -11,6 +11,10 @@ export interface Profile {
   phone: string | null;
   is_admin: boolean;
   is_colaborador: boolean;
+  is_mentor: boolean;
+  mentor_bio: string | null;
+  mentor_specialty: string | null;
+  mentor_avatar_url: string | null;
   xp_total: number;
   nivel: number;
   streak_atual: number;
