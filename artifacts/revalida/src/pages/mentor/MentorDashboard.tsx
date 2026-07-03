@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UserCheck, Calendar, Users, Save, Plus, Trash2,
-  Loader2, Clock, X, Check, ChevronRight, BookOpen,
+  Loader2, Clock, X, Check, ChevronRight, BookOpen, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import {
   createIndividualSlot,
   createGroupMentorship,
   deleteIndividualSlot,
+  deleteGroupMentorship,
   type MentorshipSlot,
   type GroupMentorship,
 } from "@/lib/mentorshipService";
@@ -462,6 +463,22 @@ function TabGrupos({ userId }: { userId: string }) {
   const [groups, setGroups]       = useState<GroupMentorship[]>([]);
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deleting, setDeleting]   = useState<string | null>(null);
+
+  async function handleDeleteGroup(id: string) {
+    setDeleting(id);
+    try {
+      await deleteGroupMentorship(id);
+      setGroups((prev) => prev.filter((g) => g.id !== id));
+      toast.success("Mentoria coletiva removida.");
+      setConfirmId(null);
+    } catch {
+      toast.error("Erro ao remover mentoria. Tente novamente.");
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   const fetchGroups = useCallback(async () => {
     setLoading(true);
@@ -571,6 +588,38 @@ function TabGrupos({ userId }: { userId: string }) {
                           className={`h-full rounded-full ${isFull ? "bg-red-400 dark:bg-red-500" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
                         />
                       </div>
+                    </div>
+
+                    {/* Delete action */}
+                    <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
+                      {confirmId === g.id ? (
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-500 dark:text-red-400 shrink-0" />
+                          <span className="text-xs text-red-600 dark:text-red-400 font-medium">Remover definitivamente?</span>
+                          <button
+                            onClick={() => void handleDeleteGroup(g.id)}
+                            disabled={deleting === g.id}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-500/20 border border-red-300 dark:border-red-400/40 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-500/30 transition-all disabled:opacity-50"
+                          >
+                            {deleting === g.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5 text-slate-400 dark:text-cyan-200/40" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmId(g.id)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 dark:text-cyan-200/30 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-400/20 transition-all duration-200"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Remover sessão
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
