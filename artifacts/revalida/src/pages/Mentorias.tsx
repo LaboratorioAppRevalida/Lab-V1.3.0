@@ -283,13 +283,34 @@ export default function MentoriasPage() {
                     className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm relative overflow-hidden min-h-[180px]"
                   >
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-500/10">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-500/10 shrink-0">
                           Mentoria Coletiva
                         </span>
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-cyan-200/40">
-                          <Clock className="w-3.5 h-3.5" />
-                          {Math.round((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 60000)} min
+                        <div className="flex items-center gap-2 ml-auto">
+                          {/* Occupancy badge */}
+                          {(() => {
+                            const remaining = session.max_capacity - session.current_bookings;
+                            const isFull    = remaining <= 0;
+                            const isLow     = !isFull && remaining <= 3;
+                            return (
+                              <span className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${
+                                isFull
+                                  ? "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border-red-200 dark:border-red-400/20"
+                                  : isLow
+                                  ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/20"
+                                  : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
+                              }`}>
+                                <Users className="w-3 h-3 shrink-0" />
+                                {isFull ? "Esgotado" : `${remaining} vaga${remaining === 1 ? "" : "s"}`}
+                              </span>
+                            );
+                          })()}
+                          {/* Duration */}
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-cyan-200/40">
+                            <Clock className="w-3.5 h-3.5" />
+                            {Math.round((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 60000)} min
+                          </div>
                         </div>
                       </div>
                       <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">{session.title}</h3>
@@ -307,12 +328,21 @@ export default function MentoriasPage() {
                           {new Date(session.start_time).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleAgendarGrupo(session)}
-                        className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-500/80 dark:to-blue-500/80 text-white text-sm font-bold shadow-sm hover:opacity-95 transition-all shrink-0"
-                      >
-                        Garantir Vaga <ChevronRight className="w-4 h-4" />
-                      </button>
+                      {session.current_bookings >= session.max_capacity ? (
+                        <button
+                          disabled
+                          className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-cyan-200/25 text-sm font-bold cursor-not-allowed shrink-0 border border-slate-200 dark:border-white/5"
+                        >
+                          <Users className="w-4 h-4" /> Esgotado
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleAgendarGrupo(session)}
+                          className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-500/80 dark:to-blue-500/80 text-white text-sm font-bold shadow-sm hover:opacity-95 transition-all shrink-0"
+                        >
+                          Garantir Vaga <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
