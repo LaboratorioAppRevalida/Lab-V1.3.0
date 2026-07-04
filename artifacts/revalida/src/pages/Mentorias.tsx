@@ -124,12 +124,12 @@ export default function MentoriasPage() {
     if (!reviewMentor || !user) return;
     try {
       setSubmittingReview(true);
-      await submitMentorReview({
-        mentor_id: reviewMentor.id,
-        student_id: user.id,
+      await submitMentorReview(
+        reviewMentor.id,
+        user.id,
         rating,
-        comment: comment.trim(),
-      });
+        comment.trim(),
+      );
       toast.success("Avaliação enviada com sucesso!");
       setReviewMentor(null);
       setComment("");
