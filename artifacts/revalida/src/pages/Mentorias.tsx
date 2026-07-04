@@ -116,7 +116,7 @@ export default function MentoriasPage() {
   }
 
   function handleAgendarGrupo(session: GroupMentorship) {
-    const msg = `Olá! Sou o aluno ${user?.name || ""} e quero participar da mentoria em grupo "${session.title}" agendada para ${new Date(session.scheduled_to).toLocaleString("pt-BR")}.`;
+    const msg = `Olá! Sou o aluno ${user?.name || ""} e quero participar da mentoria em grupo "${session.title}" agendada para ${new Date(session.start_time).toLocaleString("pt-BR")}.`;
     window.open(buildWaUrl(msg), "_blank");
   }
 
@@ -209,9 +209,9 @@ export default function MentoriasPage() {
                   >
                     <div className="space-y-3">
                       <div className="flex items-start gap-4">
-                        {mentor.avatar_url ? (
+                        {mentor.mentor_avatar_url ? (
                           <img
-                            src={mentor.avatar_url}
+                            src={mentor.mentor_avatar_url}
                             alt={mentor.name}
                             className="w-14 h-14 rounded-2xl object-cover ring-2 ring-slate-100 dark:ring-white/5"
                           />
@@ -223,15 +223,15 @@ export default function MentoriasPage() {
                         <div className="space-y-0.5 min-w-0 flex-1">
                           <h3 className="font-bold text-slate-900 dark:text-white text-lg truncate">{mentor.name}</h3>
                           <div className="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-500/10 uppercase tracking-wide truncate max-w-full">
-                            {mentor.specialties || "Mentor Geral"}
+                            {mentor.mentor_specialty || "Mentor Geral"}
                           </div>
                           <StarDisplay rating={mentor.avg_rating} count={mentor.review_count} />
                         </div>
                       </div>
 
-                      {mentor.bio && (
+                      {mentor.mentor_bio && (
                         <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed pt-1">
-                          {mentor.bio}
+                          {mentor.mentor_bio}
                         </p>
                       )}
                     </div>
