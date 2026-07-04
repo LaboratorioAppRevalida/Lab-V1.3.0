@@ -15,9 +15,11 @@ import {
   deleteIndividualSlot,
   deleteGroupMentorship,
   listMyBookedStudents,
+  listGroupParticipants,
   type MentorshipSlot,
   type GroupMentorship,
   type BookedStudentSlot,
+  type GroupParticipant,
 } from "@/lib/mentorshipService";
 import { supabase } from "@/lib/supabase";
 
@@ -467,8 +469,26 @@ function TabGrupos({ userId }: { userId: string }) {
   const [groups, setGroups]       = useState<GroupMentorship[]>([]);
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [deleting, setDeleting]   = useState<string | null>(null);
+  const [confirmId, setConfirmId]       = useState<string | null>(null);
+  const [deleting, setDeleting]         = useState<string | null>(null);
+  const [expandedId, setExpandedId]     = useState<string | null>(null);
+  const [participantsMap, setParticipantsMap] = useState<Record<string, GroupParticipant[]>>({});
+  const [loadingFor, setLoadingFor]     = useState<string | null>(null);
+
+  async function toggleParticipants(groupId: string) {
+    if (expandedId === groupId) { setExpandedId(null); return; }
+    setExpandedId(groupId);
+    if (participantsMap[groupId]) return; // already fetched
+    setLoadingFor(groupId);
+    try {
+      const list = await listGroupParticipants(groupId);
+      setParticipantsMap((prev) => ({ ...prev, [groupId]: list }));
+    } catch {
+      toast.error("Erro ao carregar participantes.");
+    } finally {
+      setLoadingFor(null);
+    }
+  }
 
   async function handleDeleteGroup(id: string) {
     setDeleting(id);
@@ -592,6 +612,55 @@ function TabGrupos({ userId }: { userId: string }) {
                           className={`h-full rounded-full ${isFull ? "bg-red-400 dark:bg-red-500" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
                         />
                       </div>
+                    </div>
+
+                    {/* Participants toggle + list */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => void toggleParticipants(g.id)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-cyan-200/40 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        Alunos Confirmados ({g.current_bookings})
+                        <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${expandedId === g.id ? "rotate-90" : ""}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {expandedId === g.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-2 flex flex-col gap-1.5">
+                              {loadingFor === g.id ? (
+                                <div className="flex justify-center py-3">
+                                  <Loader2 className="w-4 h-4 animate-spin text-cyan-500" />
+                                </div>
+                              ) : (participantsMap[g.id] ?? []).length === 0 ? (
+                                <p className="text-xs text-slate-400 dark:text-cyan-200/25 italic py-2">
+                                  Nenhum aluno confirmado até o momento.
+                                </p>
+                              ) : (
+                                (participantsMap[g.id] ?? []).map((p) => (
+                                  <div key={p.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
+                                    {p.avatar_url ? (
+                                      <img src={p.avatar_url} alt={p.name} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-white/10" />
+                                    ) : (
+                                      <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                                        <User className="w-3 h-3 text-cyan-500 dark:text-cyan-400" />
+                                      </div>
+                                    )}
+                                    <span className="text-xs font-medium text-slate-700 dark:text-cyan-100/70 truncate">{p.name}</span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Delete action */}

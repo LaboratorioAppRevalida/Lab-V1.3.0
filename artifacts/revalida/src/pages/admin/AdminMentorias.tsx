@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Calendar, UserCircle2, ChevronDown, Check, Plus,
-  Trash2, Pencil, Clock, History, X, ChevronRight,
+  Trash2, Pencil, Clock, History, X, ChevronRight, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -16,9 +16,13 @@ import {
   listAllGroupMentorshipsAdmin,
   updateGroupMentorship,
   deleteGroupMentorship,
+  listGroupParticipants,
+  addStudentToGroup,
+  removeStudentFromGroup,
   type MentorWithRating,
   type AdminSlot,
   type AdminGroupMentorship,
+  type GroupParticipant,
 } from "@/lib/mentorshipService";
 
 // ── shared styles ──────────────────────────────────────────────────────────
@@ -653,16 +657,191 @@ function GroupScheduler() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// Sub-tab 4: Gestão de Participantes
+// ════════════════════════════════════════════════════════════════════════════
+function ParticipantManager() {
+  const [groups, setGroups]         = useState<AdminGroupMentorship[]>([]);
+  const [profiles, setProfiles]     = useState<ProfileRow[]>([]);
+  const [selectedGroup, setSelectedGroup]     = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [participants, setParticipants]       = useState<GroupParticipant[]>([]);
+  const [loadingInit, setLoadingInit]         = useState(true);
+  const [loadingPart, setLoadingPart]         = useState(false);
+  const [adding, setAdding]                   = useState(false);
+  const [removing, setRemoving]               = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      listAllGroupMentorshipsAdmin(),
+      supabase.from("profiles").select("id, name, display_name, is_mentor, mentor_bio, mentor_specialty").order("name"),
+    ]).then(([grps, { data: profs }]) => {
+      setGroups(grps);
+      setProfiles((profs ?? []) as ProfileRow[]);
+    }).catch(() => toast.error("Erro ao carregar dados."))
+      .finally(() => setLoadingInit(false));
+  }, []);
+
+  async function fetchParticipants(groupId: string) {
+    if (!groupId) { setParticipants([]); return; }
+    setLoadingPart(true);
+    try {
+      setParticipants(await listGroupParticipants(groupId));
+    } catch {
+      toast.error("Erro ao carregar participantes.");
+    } finally {
+      setLoadingPart(false);
+    }
+  }
+
+  async function handleAdd() {
+    if (!selectedGroup || !selectedStudent) return;
+    setAdding(true);
+    try {
+      await addStudentToGroup(selectedGroup, selectedStudent);
+      toast.success("Aluno confirmado!");
+      setSelectedStudent("");
+      setGroups((prev) => prev.map((g) => g.id === selectedGroup ? { ...g, current_bookings: g.current_bookings + 1 } : g));
+      void fetchParticipants(selectedGroup);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao confirmar aluno.");
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function handleRemove(studentId: string) {
+    if (!selectedGroup) return;
+    setRemoving(studentId);
+    try {
+      await removeStudentFromGroup(selectedGroup, studentId);
+      setParticipants((prev) => prev.filter((p) => p.id !== studentId));
+      setGroups((prev) => prev.map((g) => g.id === selectedGroup ? { ...g, current_bookings: Math.max(0, g.current_bookings - 1) } : g));
+      toast.success("Aluno removido.");
+    } catch {
+      toast.error("Erro ao remover aluno.");
+    } finally {
+      setRemoving(null);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* ── Form ── */}
+      <div className="relative bg-[#0a1628] border border-cyan-400/20 rounded-2xl p-6 max-w-lg overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+        <h3 className="text-white font-bold text-base mb-5">Confirmar Aluno em Mentoria Coletiva</h3>
+
+        {loadingInit ? (
+          <div className="flex justify-center py-6">
+            <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {/* Group selector */}
+            <div>
+              <label className={labelCls}>Selecione a Mentoria *</label>
+              <div className="relative">
+                <select
+                  className={`${inputCls} appearance-none pr-8`}
+                  value={selectedGroup}
+                  onChange={(e) => { setSelectedGroup(e.target.value); void fetchParticipants(e.target.value); }}
+                >
+                  <option value="">Selecione uma mentoria…</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.title} · {g.mentor_name} ({g.current_bookings}/{g.max_capacity})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400/40 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Student selector */}
+            <div>
+              <label className={labelCls}>Selecione o Aluno *</label>
+              <div className="relative">
+                <select
+                  className={`${inputCls} appearance-none pr-8`}
+                  value={selectedStudent}
+                  onChange={(e) => setSelectedStudent(e.target.value)}
+                >
+                  <option value="">Selecione um aluno…</option>
+                  {profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.display_name || p.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400/40 pointer-events-none" />
+              </div>
+            </div>
+
+            <button
+              onClick={() => void handleAdd()}
+              disabled={!selectedGroup || !selectedStudent || adding}
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-cyan-500/20 to-cyan-400/10 border border-cyan-400/35 text-cyan-300 hover:from-cyan-500/30 hover:border-cyan-400/60 transition-all disabled:opacity-40"
+            >
+              {adding ? <Spinner /> : <UserPlus className="w-4 h-4" />}
+              Confirmar Aluno
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Participant list ── */}
+      {selectedGroup && (
+        <div className="flex flex-col gap-3">
+          <SectionHeader label="Alunos Confirmados" count={participants.length} />
+          {loadingPart ? (
+            <div className="flex justify-center py-6">
+              <div className="w-5 h-5 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+            </div>
+          ) : participants.length === 0 ? (
+            <p className="text-cyan-200/30 text-sm text-center py-8">Nenhum aluno confirmado ainda.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {participants.map((p) => (
+                <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/8">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {p.avatar_url ? (
+                      <img src={p.avatar_url} alt={p.name} className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-white/10" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                        <UserCircle2 className="w-4 h-4 text-cyan-400/50" />
+                      </div>
+                    )}
+                    <span className="text-white text-sm font-medium truncate">{p.name}</span>
+                  </div>
+                  <button
+                    onClick={() => void handleRemove(p.id)}
+                    disabled={removing === p.id}
+                    className="p-1.5 rounded-lg text-cyan-200/30 hover:text-red-400 hover:bg-red-400/10 border border-transparent hover:border-red-400/20 transition-all disabled:opacity-50"
+                  >
+                    {removing === p.id ? <Spinner sm /> : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // Main page
 // ════════════════════════════════════════════════════════════════════════════
 const SUB_TABS = [
-  { key: "mentors" as const, label: "Médicos & Mentores", icon: Users },
-  { key: "slots"   as const, label: "Slots Individuais",  icon: Clock },
-  { key: "groups"  as const, label: "Mentorias em Grupo", icon: Calendar },
+  { key: "mentors"      as const, label: "Médicos & Mentores",    icon: Users    },
+  { key: "slots"        as const, label: "Slots Individuais",     icon: Clock    },
+  { key: "groups"       as const, label: "Mentorias em Grupo",    icon: Calendar },
+  { key: "participants" as const, label: "Gestão de Participantes", icon: UserPlus },
 ];
 
 export default function AdminMentorias() {
-  const [tab, setTab] = useState<"mentors" | "slots" | "groups">("mentors");
+  const [tab, setTab] = useState<"mentors" | "slots" | "groups" | "participants">("mentors");
 
   return (
     <div className="flex flex-col gap-6">
@@ -698,6 +877,11 @@ export default function AdminMentorias() {
         {tab === "groups" && (
           <motion.div key="groups" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.2 }}>
             <GroupScheduler />
+          </motion.div>
+        )}
+        {tab === "participants" && (
+          <motion.div key="participants" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.2 }}>
+            <ParticipantManager />
           </motion.div>
         )}
       </AnimatePresence>

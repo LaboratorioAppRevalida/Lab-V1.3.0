@@ -302,7 +302,7 @@ export default function MentoriasPage() {
                                   : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
                               }`}>
                                 <Users className="w-3 h-3 shrink-0" />
-                                {isFull ? "Esgotado" : `${remaining} vaga${remaining === 1 ? "" : "s"}`}
+                                {isFull ? "Esgotado" : `${session.current_bookings}/${session.max_capacity} preenchidas`}
                               </span>
                             );
                           })()}

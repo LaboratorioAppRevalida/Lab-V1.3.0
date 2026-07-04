@@ -250,6 +250,85 @@ export async function deleteGroupMentorship(groupId: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Group participant management ──────────────────────────────────────────────
+
+export interface GroupParticipant {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+export async function listGroupParticipants(groupId: string): Promise<GroupParticipant[]> {
+  const { data, error } = await supabase
+    .from("group_mentorship_participants")
+    .select(
+      `student:profiles!group_mentorship_participants_student_id_fkey(id, name, display_name, avatar_url)`
+    )
+    .eq("group_id", groupId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown[]).map((row) => {
+    const r = row as Record<string, unknown>;
+    const studentRaw = Array.isArray(r.student) ? r.student[0] : r.student;
+    const s = (studentRaw ?? {}) as { id?: string; name?: string; display_name?: string | null; avatar_url?: string | null };
+    return {
+      id:         s.id ?? "",
+      name:       s.display_name?.trim() || s.name?.trim() || "Aluno",
+      avatar_url: s.avatar_url ?? null,
+    };
+  });
+}
+
+export async function addStudentToGroup(groupId: string, studentId: string): Promise<void> {
+  const { error: insertError } = await supabase
+    .from("group_mentorship_participants")
+    .insert({ group_id: groupId, student_id: studentId });
+
+  if (insertError) {
+    const code = String(insertError.code ?? "");
+    if (code.startsWith("23505")) throw new Error("Aluno já confirmado nesta mentoria.");
+    throw insertError;
+  }
+
+  const { data: row } = await supabase
+    .from("group_mentorships")
+    .select("current_bookings")
+    .eq("id", groupId)
+    .single();
+
+  if (row) {
+    await supabase
+      .from("group_mentorships")
+      .update({ current_bookings: (row.current_bookings as number) + 1 })
+      .eq("id", groupId);
+  }
+}
+
+export async function removeStudentFromGroup(groupId: string, studentId: string): Promise<void> {
+  const { error } = await supabase
+    .from("group_mentorship_participants")
+    .delete()
+    .eq("group_id", groupId)
+    .eq("student_id", studentId);
+
+  if (error) throw error;
+
+  const { data: row } = await supabase
+    .from("group_mentorships")
+    .select("current_bookings")
+    .eq("id", groupId)
+    .single();
+
+  if (row) {
+    await supabase
+      .from("group_mentorships")
+      .update({ current_bookings: Math.max(0, (row.current_bookings as number) - 1) })
+      .eq("id", groupId);
+  }
+}
+
 export interface BookedStudentSlot {
   slotId: string;
   start_time: string;
