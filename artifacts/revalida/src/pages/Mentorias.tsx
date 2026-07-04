@@ -300,10 +300,10 @@ export default function MentoriasPage() {
                       )}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-4 shrink-0">
-                      <div className="min-w-0">
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0">
+                      <div>
                         <p className="text-[11px] font-bold text-slate-400 dark:text-cyan-200/30 uppercase tracking-wider">Agendado para</p>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                           {new Date(session.start_time).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                         </p>
                       </div>
