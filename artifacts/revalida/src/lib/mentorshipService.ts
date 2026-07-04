@@ -410,3 +410,82 @@ export async function submitMentorReview(
     throw error;
   }
 }
+
+// ── Individual slot booking (student → pending → admin confirms → booked) ──────
+
+export interface PendingSlot {
+  id: string;
+  mentor_id: string;
+  mentor_name: string;
+  start_time: string;
+  end_time: string;
+  student_id: string;
+  student_name: string;
+}
+
+export async function bookIndividualSlot(slotId: string, studentId: string): Promise<void> {
+  const { error } = await supabase
+    .from("mentorship_slots")
+    .update({ status: "pending", student_id: studentId })
+    .eq("id", slotId)
+    .eq("status", "available");
+  if (error) throw error;
+}
+
+export async function listPendingSlotsAdmin(): Promise<PendingSlot[]> {
+  const { data, error } = await supabase
+    .from("mentorship_slots")
+    .select("id, mentor_id, start_time, end_time, student_id")
+    .eq("status", "pending")
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  const mentorIds = [...new Set(data.map((s) => s.mentor_id as string))];
+  const studentIds = [...new Set(
+    data.map((s) => s.student_id as string | null).filter(Boolean) as string[]
+  )];
+  const allIds = [...new Set([...mentorIds, ...studentIds])];
+
+  const profileMap: Record<string, string> = {};
+  if (allIds.length > 0) {
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, name, display_name")
+      .in("id", allIds);
+    for (const p of profs ?? []) {
+      const pr = p as { id: string; name: string; display_name: string | null };
+      profileMap[pr.id] = pr.display_name?.trim() || pr.name?.trim() || "—";
+    }
+  }
+
+  return data.map((row) => {
+    const r = row as { id: string; mentor_id: string; start_time: string; end_time: string; student_id: string };
+    return {
+      id: r.id,
+      mentor_id: r.mentor_id,
+      mentor_name: profileMap[r.mentor_id] ?? "—",
+      start_time: r.start_time,
+      end_time: r.end_time,
+      student_id: r.student_id ?? "",
+      student_name: profileMap[r.student_id] ?? "Aluno",
+    };
+  });
+}
+
+export async function confirmSlotBooking(slotId: string): Promise<void> {
+  const { error } = await supabase
+    .from("mentorship_slots")
+    .update({ status: "booked" })
+    .eq("id", slotId);
+  if (error) throw error;
+}
+
+export async function rejectSlotBooking(slotId: string): Promise<void> {
+  const { error } = await supabase
+    .from("mentorship_slots")
+    .update({ status: "available", student_id: null })
+    .eq("id", slotId);
+  if (error) throw error;
+}

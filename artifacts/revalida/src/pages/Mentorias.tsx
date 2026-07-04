@@ -7,6 +7,7 @@ import {
   getMentorAvailability,
   listGroupMentorships,
   submitMentorReview,
+  bookIndividualSlot,
   type MentorWithRating,
   type MentorshipSlot,
   type GroupMentorship,
@@ -54,6 +55,7 @@ export default function MentoriasPage() {
   const [selectedMentor, setSelectedMentor] = useState<MentorWithRating | null>(null);
   const [slots, setSlots] = useState<MentorshipSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [bookingSlotId, setBookingSlotId] = useState<string | null>(null);
 
   // Modal para Avaliação (Review)
   const [reviewMentor, setReviewMentor] = useState<MentorWithRating | null>(null);
@@ -109,10 +111,18 @@ export default function MentoriasPage() {
     }
   }
 
-  function handleAgendarIndividual(slot: MentorshipSlot) {
-    if (!selectedMentor) return;
-    const msg = `Olá! Sou o aluno ${user?.name || ""} e gostaria de agendar a mentoria individual com o mentor ${selectedMentor.name} no horário de ${new Date(slot.start_time).toLocaleString("pt-BR")}.`;
-    window.open(buildWaUrl(msg), "_blank");
+  async function handleAgendarIndividual(slot: MentorshipSlot) {
+    if (!selectedMentor || !user) return;
+    setBookingSlotId(slot.id);
+    try {
+      await bookIndividualSlot(slot.id, user.id);
+      toast.success("Solicitação enviada! Aguarde a confirmação do administrador.");
+      setSlots((prev) => prev.filter((s) => s.id !== slot.id));
+    } catch {
+      toast.error("Erro ao enviar solicitação. Tente novamente.");
+    } finally {
+      setBookingSlotId(null);
+    }
   }
 
   function handleAgendarGrupo(session: GroupMentorship) {
@@ -409,9 +419,13 @@ export default function MentoriasPage() {
                         </span>
                       </div>
                       <button
-                        onClick={() => handleAgendarIndividual(slot)}
-                        className="h-8 px-3 rounded-lg bg-cyan-600 dark:bg-cyan-500/20 text-white dark:text-cyan-400 hover:bg-cyan-700 dark:hover:bg-cyan-500/30 text-xs font-bold transition-all"
+                        onClick={() => void handleAgendarIndividual(slot)}
+                        disabled={bookingSlotId === slot.id}
+                        className="h-8 px-3 rounded-lg bg-cyan-600 dark:bg-cyan-500/20 text-white dark:text-cyan-400 hover:bg-cyan-700 dark:hover:bg-cyan-500/30 text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5"
                       >
+                        {bookingSlotId === slot.id ? (
+                          <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : null}
                         Agendar
                       </button>
                     </div>

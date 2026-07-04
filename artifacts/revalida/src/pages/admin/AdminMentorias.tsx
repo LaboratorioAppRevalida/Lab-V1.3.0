@@ -19,10 +19,14 @@ import {
   listGroupParticipants,
   addStudentToGroup,
   removeStudentFromGroup,
+  listPendingSlotsAdmin,
+  confirmSlotBooking,
+  rejectSlotBooking,
   type MentorWithRating,
   type AdminSlot,
   type AdminGroupMentorship,
   type GroupParticipant,
+  type PendingSlot,
 } from "@/lib/mentorshipService";
 
 // ── shared styles ──────────────────────────────────────────────────────────
@@ -670,6 +674,19 @@ function ParticipantManager() {
   const [adding, setAdding]                   = useState(false);
   const [removing, setRemoving]               = useState<string | null>(null);
 
+  const [pendingSlots, setPendingSlots]         = useState<PendingSlot[]>([]);
+  const [loadingPending, setLoadingPending]     = useState(true);
+  const [confirming, setConfirming]             = useState<string | null>(null);
+  const [rejecting, setRejecting]               = useState<string | null>(null);
+
+  const reloadPending = useCallback(() => {
+    setLoadingPending(true);
+    listPendingSlotsAdmin()
+      .then(setPendingSlots)
+      .catch(() => toast.error("Erro ao carregar solicitações individuais."))
+      .finally(() => setLoadingPending(false));
+  }, []);
+
   useEffect(() => {
     Promise.all([
       listAllGroupMentorshipsAdmin(),
@@ -679,7 +696,28 @@ function ParticipantManager() {
       setProfiles((profs ?? []) as ProfileRow[]);
     }).catch(() => toast.error("Erro ao carregar dados."))
       .finally(() => setLoadingInit(false));
-  }, []);
+    reloadPending();
+  }, [reloadPending]);
+
+  async function handleConfirmSlot(slotId: string) {
+    setConfirming(slotId);
+    try {
+      await confirmSlotBooking(slotId);
+      toast.success("Agendamento confirmado!");
+      reloadPending();
+    } catch { toast.error("Erro ao confirmar agendamento."); }
+    finally { setConfirming(null); }
+  }
+
+  async function handleRejectSlot(slotId: string) {
+    setRejecting(slotId);
+    try {
+      await rejectSlotBooking(slotId);
+      toast.success("Solicitação recusada.");
+      reloadPending();
+    } catch { toast.error("Erro ao recusar solicitação."); }
+    finally { setRejecting(null); }
+  }
 
   async function fetchParticipants(groupId: string) {
     if (!groupId) { setParticipants([]); return; }
@@ -828,6 +866,69 @@ function ParticipantManager() {
           )}
         </div>
       )}
+
+      {/* ── Individual slot approvals ─────────────────────────────────────── */}
+      <div className="relative bg-[#0a1628] border border-cyan-400/20 rounded-2xl p-6 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-white font-bold text-base">Confirmar Aluno em Mentoria Individual</h3>
+          <button
+            onClick={reloadPending}
+            className="text-xs text-cyan-400/50 hover:text-cyan-400 transition-colors font-medium"
+          >
+            Atualizar
+          </button>
+        </div>
+
+        {loadingPending ? (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+          </div>
+        ) : pendingSlots.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-cyan-200/30 text-sm">Nenhuma solicitação individual pendente.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {pendingSlots.map((slot) => (
+              <div
+                key={slot.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3.5 rounded-xl bg-amber-500/5 border border-amber-400/20"
+              >
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded-full border border-amber-400/20">
+                      Pendente
+                    </span>
+                    <span className="text-white text-sm font-semibold truncate">{slot.student_name}</span>
+                  </div>
+                  <span className="text-cyan-200/40 text-xs">
+                    Com {slot.mentor_name} · {new Date(slot.start_time).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => void handleConfirmSlot(slot.id)}
+                    disabled={confirming === slot.id || rejecting === slot.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30 transition-all disabled:opacity-50"
+                  >
+                    {confirming === slot.id ? <Spinner sm /> : <Check className="w-3 h-3" />}
+                    Confirmar
+                  </button>
+                  <button
+                    onClick={() => void handleRejectSlot(slot.id)}
+                    disabled={confirming === slot.id || rejecting === slot.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/15 border border-red-400/30 text-red-300 hover:bg-red-500/25 transition-all disabled:opacity-50"
+                  >
+                    {rejecting === slot.id ? <Spinner sm /> : <X className="w-3 h-3" />}
+                    Recusar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

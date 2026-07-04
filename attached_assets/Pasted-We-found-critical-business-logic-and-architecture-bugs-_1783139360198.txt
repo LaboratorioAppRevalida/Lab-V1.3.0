@@ -1,0 +1,21 @@
+We found critical business logic and architecture bugs regarding individual mentorships and mock data in the Admin panel. Please read the specs below carefully and implement the fixes:
+
+---
+
+## 🛑 1. BUG: Static Mock Data Reloading on Refresh
+- **Problem:** When deleting certain mentorship sessions in the Admin area, they reappear upon refreshing or navigating away and back (except for the latest real one created).
+- **Root Cause:** The component is initializing its state with a hardcoded array of mock/static objects (e.g., "Revisão de Cardiologia - Admin"). 
+- **Action:** Open `src/pages/admin/AdminMentorias.tsx` (and any related state files), locate the hardcoded mock data array used to populate the list, and remove it completely. The state must rely 100% and exclusively on live data fetched from the Supabase database.
+
+---
+
+## 🔄 2. FEATURE/BUGFIX: Connect Individual Mentorships to Admin Confirmation Panel (image_6895de.png)
+- **Problem:** The Admin panel under "Gestão de Participantes" only shows options for "Mentoria Coletiva" (Group Mentorships). Individual mentorship requests (created via the schedule slots shown in image_688a7b.png and image_688d68.png) never appear here for approval, and we don't know if the backend handles their approval flow.
+- **Action:**
+  1. Check the database schema/services for individual slots (likely `mentorship_slots` or `appointments`). Ensure that when a student clicks "Agendar", it changes a status column to `'pending'` (or creates an appointment record with a pending flag).
+  2. In `src/pages/admin/AdminMentorias.tsx`, under the "Gestão de Participantes" tab, expand the UI to either handle both types OR add a secondary section/toggle specifically named "Confirmar Aluno em Mentoria Individual".
+  3. Fetch pending individual mentorship bookings from the database, list them for selection, and display a "Confirmar Agendamento" button that updates the status in the database to `'confirmed'`. Once confirmed, make sure this reflects reactively in the Mentor's Panel under "Agendados" (image_688a7b.png).
+
+---
+
+Please clean up the code, remove the hardcoded data strings, establish the dynamic database fetch for individual slot approvals, ensure TypeScript compilation is perfectly clean, and notify me when completed!
