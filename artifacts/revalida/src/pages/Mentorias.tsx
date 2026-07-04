@@ -314,6 +314,10 @@ export default function MentoriasPage() {
                         </div>
                       </div>
                       <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">{session.title}</h3>
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-cyan-200/40">
+                        <UserCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Por <span className="font-semibold text-slate-700 dark:text-cyan-200/60">{session.mentor.display_name || session.mentor.name}</span></span>
+                      </div>
                       {session.description && (
                         <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
                           {session.description}

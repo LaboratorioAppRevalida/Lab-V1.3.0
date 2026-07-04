@@ -291,19 +291,7 @@ export async function addStudentToGroup(groupId: string, studentId: string): Pro
     if (code.startsWith("23505")) throw new Error("Aluno já confirmado nesta mentoria.");
     throw insertError;
   }
-
-  const { data: row } = await supabase
-    .from("group_mentorships")
-    .select("current_bookings")
-    .eq("id", groupId)
-    .single();
-
-  if (row) {
-    await supabase
-      .from("group_mentorships")
-      .update({ current_bookings: (row.current_bookings as number) + 1 })
-      .eq("id", groupId);
-  }
+  // current_bookings is kept in sync automatically by the DB trigger (migration 038)
 }
 
 export async function removeStudentFromGroup(groupId: string, studentId: string): Promise<void> {
@@ -314,19 +302,7 @@ export async function removeStudentFromGroup(groupId: string, studentId: string)
     .eq("student_id", studentId);
 
   if (error) throw error;
-
-  const { data: row } = await supabase
-    .from("group_mentorships")
-    .select("current_bookings")
-    .eq("id", groupId)
-    .single();
-
-  if (row) {
-    await supabase
-      .from("group_mentorships")
-      .update({ current_bookings: Math.max(0, (row.current_bookings as number) - 1) })
-      .eq("id", groupId);
-  }
+  // current_bookings is kept in sync automatically by the DB trigger (migration 038)
 }
 
 export interface BookedStudentSlot {
@@ -341,35 +317,54 @@ export interface BookedStudentSlot {
 }
 
 export async function listMyBookedStudents(mentorId: string): Promise<BookedStudentSlot[]> {
-  const { data, error } = await supabase
+  // Step 1: booked slots — no FK-join alias to avoid constraint-name fragility
+  const { data: slotData, error: slotError } = await supabase
     .from("mentorship_slots")
-    .select(
-      `id, start_time, end_time, student_id,
-       student:profiles!mentorship_slots_student_id_fkey(id, name, display_name, avatar_url)`
-    )
+    .select("id, start_time, end_time, student_id")
     .eq("mentor_id", mentorId)
     .eq("status", "booked")
     .order("start_time", { ascending: true });
 
-  if (error) throw error;
+  if (slotError) throw slotError;
+  if (!slotData || slotData.length === 0) return [];
 
-  const slots: BookedStudentSlot[] = ((data ?? []) as unknown[]).map((row) => {
-    const r = row as Record<string, unknown>;
-    const studentRaw = Array.isArray(r.student) ? r.student[0] : r.student;
-    const s = (studentRaw ?? {}) as { id?: string; name?: string; display_name?: string | null; avatar_url?: string | null };
+  // Step 2: student profiles (separate query, no FK name needed)
+  const studentIds = [
+    ...new Set(
+      slotData.map((s) => s.student_id as string | null).filter(Boolean) as string[]
+    ),
+  ];
+
+  const profileMap: Record<string, { name: string; display_name: string | null; avatar_url: string | null }> = {};
+  if (studentIds.length > 0) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("id, name, display_name, avatar_url")
+      .in("id", studentIds);
+    for (const p of profileData ?? []) {
+      const row = p as { id: string; name: string; display_name: string | null; avatar_url: string | null };
+      profileMap[row.id] = row;
+    }
+  }
+
+  const slots: BookedStudentSlot[] = slotData.map((row) => {
+    const studentId = (row.student_id ?? "") as string;
+    const profile   = profileMap[studentId] ?? {};
     return {
-      slotId:        r.id as string,
-      start_time:    r.start_time as string,
-      end_time:      r.end_time as string,
-      studentId:     (s.id ?? r.student_id) as string,
-      studentName:   s.display_name?.trim() || s.name?.trim() || "Aluno",
-      studentAvatar: s.avatar_url ?? null,
+      slotId:        row.id as string,
+      start_time:    row.start_time as string,
+      end_time:      row.end_time as string,
+      studentId,
+      studentName:   (profile.display_name as string | null)?.trim()
+                     || (profile.name as string | null)?.trim()
+                     || "Aluno",
+      studentAvatar: (profile.avatar_url as string | null) ?? null,
     };
   });
 
-  if (slots.length === 0) return slots;
+  if (studentIds.length === 0) return slots;
 
-  const studentIds = [...new Set(slots.map((s) => s.studentId).filter(Boolean))];
+  // Step 3: ratings
   const { data: reviews } = await supabase
     .from("mentor_reviews")
     .select("student_id, rating, comment")

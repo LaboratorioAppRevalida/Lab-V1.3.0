@@ -1,0 +1,29 @@
+# BUGFIX: Synchronization of Group Bookings, Mentor Dashboard Error, and Missing Mentor Name
+
+We need to fix a few critical bugs and UI gaps regarding the group mentorship feature, as reported in images image_67293e.png, image_672c68.png, and image_673044.png.
+
+---
+
+## 🎯 1. FIX: Group Booking Count Sync (image_67293e.png & image_672c68.png)
+- **Problem:** Students appear inside the expanded "Alunos Confirmados" accordion list, but the session counter displays `0/10` or `0/5`, and the accordion title reads `Alunos Confirmados (0)`.
+- **Root Cause:** The `addStudentToGroup` and `removeStudentFromGroup` service functions (in `src/lib/mentorshipService.ts`) are either not properly incrementing/decrementing the `current_bookings` column in the `group_mentorships` table, OR the Admin/Mentor screens are not re-fetching the updated group data after an addition/removal.
+- **Action:** 
+  1. Open `src/lib/mentorshipService.ts` and ensure `addStudentToGroup` correctly performs an RPC or a `.update()` to set `current_bookings = current_bookings + 1` (and decrement on remove).
+  2. In the Admin dashboard and Mentor dashboard, make sure that when a student is added/removed, the group's state or local state counter is forcefully re-fetched or updated reactively.
+
+---
+
+## 🛑 2. FIX: "Erro ao carregar alunos." in Mentor Dashboard (image_673044.png)
+- **Problem:** Clicking on the "Meus Alunos" tab inside `MentorDashboard.tsx` fails completely and shows a red toast error.
+- **Root Cause:** The query fetching individual scheduled sessions for this mentor is throwing an exception (likely due to a schema mismatch or empty records handling).
+- **Action:** Open `src/pages/mentor/MentorDashboard.tsx` (or the respective hook/service), locate the fetch logic for the "Meus Alunos" tab, wrap it securely in a `try/catch`, and ensure it returns an empty array gracefully instead of breaking the UI if no individual records exist.
+
+---
+
+## 👨‍🏫 3. FEATURE: Display Mentor Name on Group Mentorship Cards (image_67293e.png)
+- **Problem:** In the main group mentorship feed (`src/pages/Mentorias.tsx`), the cards do not indicate who the mentor responsible for that session is.
+- **Action:** Update the query that fetches group mentorships to join the `profiles` table using `mentor_id` to select the mentor's full name. Render it nicely inside the group session card (e.g., "Por: Mentor Name" or with a small teacher/user icon).
+
+---
+
+Please apply these structural and visual fixes across the files, ensure TypeScript compiles perfectly without errors, and let me know when HMR completes!

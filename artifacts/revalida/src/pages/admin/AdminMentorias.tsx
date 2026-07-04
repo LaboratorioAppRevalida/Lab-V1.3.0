@@ -700,8 +700,9 @@ function ParticipantManager() {
       await addStudentToGroup(selectedGroup, selectedStudent);
       toast.success("Aluno confirmado!");
       setSelectedStudent("");
-      setGroups((prev) => prev.map((g) => g.id === selectedGroup ? { ...g, current_bookings: g.current_bookings + 1 } : g));
       void fetchParticipants(selectedGroup);
+      // Re-fetch from DB so current_bookings reflects the trigger update
+      listAllGroupMentorshipsAdmin().then(setGroups).catch(() => {});
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao confirmar aluno.");
     } finally {
@@ -715,8 +716,9 @@ function ParticipantManager() {
     try {
       await removeStudentFromGroup(selectedGroup, studentId);
       setParticipants((prev) => prev.filter((p) => p.id !== studentId));
-      setGroups((prev) => prev.map((g) => g.id === selectedGroup ? { ...g, current_bookings: Math.max(0, g.current_bookings - 1) } : g));
       toast.success("Aluno removido.");
+      // Re-fetch from DB so current_bookings reflects the trigger update
+      listAllGroupMentorshipsAdmin().then(setGroups).catch(() => {});
     } catch {
       toast.error("Erro ao remover aluno.");
     } finally {
