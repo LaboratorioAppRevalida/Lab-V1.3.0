@@ -66,24 +66,38 @@ async function getMissionDbId(missionKey: string): Promise<string | null> {
 export async function fetchUserMissionProgress(
   userId: string,
 ): Promise<ProgressMap> {
-  const { data, error } = await supabase
+  // Busca o progresso do usuário de forma isolada para evitar erros de join no PostgREST
+  const { data: progressData, error: progressError } = await supabase
     .from("user_mission_progress")
-    .select("*, missions(id, slug)")
+    .select("*")
     .eq("user_id", userId);
 
-  if (error) throw error;
+  if (progressError) throw progressError;
+
+  // Busca as referências de missões para correlacionar slugs e IDs[cite: 6]
+  const { data: missionsData, error: missionsError } = await supabase
+    .from("missions")
+    .select("id, slug");
+
+  if (missionsError) throw missionsError;
+
+  const missionMap = new Map<string, { id: string; slug: string }>();
+  for (const m of missionsData ?? []) {
+    missionMap.set(m.id, { id: m.id, slug: m.slug });
+  }
 
   const map: ProgressMap = new Map();
 
-  for (const row of data ?? []) {
-    const m = row.missions as { id: string; slug: string } | null;
-    const key = m ? (m.slug || m.id) : "";
+  for (const row of progressData ?? []) {
+    const missionId = row.mission_id as string;
+    const missionInfo = missionMap.get(missionId);
+    const key = missionInfo ? (missionInfo.slug || missionInfo.id) : missionId;
     if (!key) continue;
 
     map.set(key, {
       id:              row.id as string,
       userId:          row.user_id as string,
-      missionId:       row.mission_id as string,
+      missionId:       missionId,
       missionKey:      key,
       progress:        row.progress as number,
       target:          row.target as number,
@@ -99,8 +113,8 @@ export async function fetchUserMissionProgress(
 }
 
 /**
- * Cria ou atualiza o registro de progresso de uma missão.
- * Silencioso em caso de erro — mantém o sistema funcionando sem interrupção.
+ * Cria ou atualiza o registro de progresso de uma missão[cite: 6].
+ * Silencioso em caso de erro — mantém o sistema funcionando sem interrupção[cite: 6].
  */
 export async function upsertMissionProgress(
   userId: string,
@@ -135,8 +149,8 @@ export async function upsertMissionProgress(
 }
 
 /**
- * Marca uma missão como reivindicada (claimed=true) no Supabase.
- * Silencioso em caso de erro — o claim no localStorage já foi feito.
+ * Marca uma missão como reivindicada (claimed=true) no Supabase[cite: 6].
+ * Silencioso em caso de erro — o claim no localStorage já foi feito[cite: 6].
  */
 export async function claimMissionReward(
   userId: string,
@@ -172,9 +186,9 @@ export async function claimMissionReward(
 }
 
 /**
- * Migra claims do localStorage para o Supabase.
- * Não remove o localStorage — apenas espelha para o banco.
- * Usado no mount de Conquistas.tsx para migração segura.
+ * Migra claims do localStorage para o Supabase[cite: 6].
+ * Não remove o localStorage — apenas espelha para o banco[cite: 6].
+ * Usado no mount de Conquistas.tsx para migração segura[cite: 6].
  */
 export async function syncLegacyMissionProgress(
   userId: string,
