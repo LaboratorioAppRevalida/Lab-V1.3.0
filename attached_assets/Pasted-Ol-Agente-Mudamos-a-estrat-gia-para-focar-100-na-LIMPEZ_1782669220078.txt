@@ -1,0 +1,24 @@
+Olá, Agente. Mudamos a estratégia para focar 100% na LIMPEZA ABSOLUTA do sistema de personalização antigo antes de pensar em qualquer nova interface. O objetivo deste comando é erradicar por completo qualquer lógica, estado, chamada de banco de dados ou estilo inline herdado do painel antigo, fazendo com que a plataforma inteira dependa única e exclusivamente do arquivo 'src/index.css' para o seu comportamento visual original.
+
+Siga rigorosamente este plano de extinção blindado, garantindo erro zero de compilação:
+
+1. REMOÇÃO DOS COMPONENTES E PÁGINAS DO PAINEL ANTIGO:
+- Acesse 'src/pages/admin/AdminPersonalizacao.tsx'. Apague completamente todo o conteúdo interno do arquivo voltado para seletores de cores, inputs de hexadecimais, opacidades de imagens de fundo e botões de salvar presets. 
+- Caso o arquivo precise continuar existindo temporariamente para não quebrar as rotas do Admin, mantenha apenas uma casca vazia: 'export default function AdminPersonalizacao() { return <div className="p-6 text-foreground">Painel de Personalização Descontinuado</div>; }'.
+
+2. ELIMINAÇÃO DEFINITIVA DE CONTEXTOS E PRESETS ÓRFÃOS:
+- Delete fisicamente os arquivos: 'src/contexts/PlatformThemeContext.tsx', 'src/lib/platformConfigService.ts' e 'src/lib/themePresets.ts'.
+- Acesse 'src/App.tsx' e remova permanentemente a importação e a tag envolvente do '<PlatformThemeProvider>'. Garanta que a árvore de componentes fique encapsulada apenas pelo '<ThemeProvider>' nativo (responsável pelo LocalStorage e pela classe '.dark/.light' na raiz).
+
+3. DESINFECÇÃO DE ESTILOS INLINE E CLASSES FIXAS (APP LADO DO ALUNO E AUTH):
+- Percorra 'src/components/AppShell.tsx', 'src/pages/Login.tsx', 'src/pages/EsqueciSenha.tsx' e 'src/pages/RedefinirSenha.tsx'.
+- Remova qualquer referência ao antigo objeto 'config', 'tokens', 'loginTokens' ou funções que faziam cálculos de opacidade/cores dinâmicas (ex: hexToRgba).
+- Garanta que todos os elementos HTML externos (wrappers, main containers) que possuíam estilos inline 'style={{ backgroundColor: ... }}' ou classes rígidas de fundo escuro passem a utilizar as classes semânticas utilitárias do Tailwind v4 (como 'bg-background text-foreground'). O fundo global deve flutuar livremente entre claro e escuro de acordo com o switch de tema nativo.
+
+4. PROTOCOLO DE BLINDAGEM DE IMPORTAÇÃO (FALLBACK):
+- Se, ao remover os arquivos físicos, o compilador do TypeScript acusar que algum outro componente (ex: Inicio.tsx, Checklists, Módulos de Treino) ainda tentava importar 'usePlatformTheme', substitua imediatamente essa importação por um hook falso local ou remova a chamada, garantindo que o valor de fallback seja ignorado com segurança.
+
+5. VALIDAÇÃO RIGOROSA:
+- Execute 'vite build' para validar a integridade. O bundle deve ser gerado com sucesso, com zero erros novos de compilação.
+
+Remova todo o entulho visual do sistema dinâmico e deixe a aplicação limpa e pronta. Aguardo o relatório de build concluído.

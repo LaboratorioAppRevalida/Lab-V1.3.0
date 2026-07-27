@@ -1,0 +1,262 @@
+Quero agora criar a infraestrutura COMPLETA oficial do backend do laboratório Revalida-Lab no novo Supabase.
+
+IMPORTANTE:
+Isso NÃO é mais auditoria.
+Agora quero gerar a migration SQL oficial do projeto.
+
+OBJETIVO:
+Criar TODA a infraestrutura necessária do app no Supabase novo, baseada EXATAMENTE no estado atual do código-fonte.
+
+━━━━━━━━━━━━━━━━━━━
+REGRAS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━
+
+NÃO criar tabelas fictícias.
+NÃO inventar schemas.
+NÃO simplificar estruturas.
+
+Quero que a migration reflita o estado REAL atual do app.
+
+A migration deve ser:
+
+* única
+* organizada
+* comentada
+* idempotente
+* segura
+* pronta para colar no SQL Editor do Supabase
+
+━━━━━━━━━━━━━━━━━━━
+QUERO QUE VOCÊ CRIE:
+━━━━━━━━━━━━━━━━━━━
+
+1. TODAS AS TABELAS REAIS DO APP
+
+Incluindo:
+
+* profiles
+* sessions
+* checklists
+* multiplayer_sessions
+* resumos
+* noticias
+* notes
+* session_ratings
+* user_warnings
+* app_events
+* user_feedback
+* app_error_logs
+* app_settings
+
+Usar exatamente:
+
+* tipos
+* defaults
+* FKs
+* índices
+* constraints
+* campos
+  identificados na auditoria.
+
+━━━━━━━━━━━━━━━━━━━
+2. TODAS AS FOREIGN KEYS
+━━━━━━━━━━━━━━━━━━━
+
+Incluindo:
+
+* CASCADE
+* SET NULL
+* UNIQUE
+* CHECKS
+
+EXATAMENTE como esperado pelo código.
+
+━━━━━━━━━━━━━━━━━━━
+3. TODAS AS POLICIES RLS
+━━━━━━━━━━━━━━━━━━━
+
+Quero políticas completas para:
+
+* leitura pública/autenticada
+* escrita por dono
+* acesso admin
+* multiplayer
+* observabilidade
+* notas
+* rankings
+* feedback
+* notícias
+* resumos
+* checklists
+
+NÃO deixar tabelas abertas desnecessariamente.
+
+━━━━━━━━━━━━━━━━━━━
+4. TODOS OS ÍNDICES
+━━━━━━━━━━━━━━━━━━━
+
+Criar índices identificados na auditoria:
+
+* rankings
+* updated_at
+* realtime recovery
+* performance
+* sorting
+* multiplayer
+* analytics
+
+━━━━━━━━━━━━━━━━━━━
+5. TODOS OS TRIGGERS
+━━━━━━━━━━━━━━━━━━━
+
+Quero implementar corretamente:
+
+A)
+auto criação de profiles após signup
+
+B)
+updated_at automático
+
+C)
+trigger de XP/nivel após salvar sessions
+
+D)
+refresh de streak/login
+
+━━━━━━━━━━━━━━━━━━━
+6. VIEW ranking_semana
+━━━━━━━━━━━━━━━━━━━
+
+Criar a VIEW oficial utilizada pelo ranking semanal.
+
+Preferência:
+MATERIALIZED VIEW se fizer sentido.
+
+Quero que seja compatível com rankingService.ts atual.
+
+━━━━━━━━━━━━━━━━━━━
+7. STORAGE BUCKETS
+━━━━━━━━━━━━━━━━━━━
+
+Criar oficialmente:
+
+* avatars
+* resumos-media
+* news-media
+
+Todos públicos.
+
+NÃO depender mais de createBucket() via frontend.
+
+━━━━━━━━━━━━━━━━━━━
+8. REALTIME
+━━━━━━━━━━━━━━━━━━━
+
+Garantir compatibilidade completa com:
+
+Presence:
+
+* online-users
+
+Broadcast:
+
+* global-events
+
+Postgres Changes:
+
+* observabilidade-live
+
+━━━━━━━━━━━━━━━━━━━
+9. COMPATIBILIDADE
+━━━━━━━━━━━━━━━━━━━
+
+A migration precisa ser compatível com:
+
+* Supabase Auth
+* frontend atual
+* AuthContext
+* TrainingContext
+* multiplayer
+* rankings
+* gamificação
+* observabilidade
+* admin
+* notícias
+* resumos
+* notas
+* uploads
+
+SEM alterar o frontend.
+
+━━━━━━━━━━━━━━━━━━━
+10. MUITO IMPORTANTE
+━━━━━━━━━━━━━━━━━━━
+
+NÃO quero:
+
+* pseudo código
+* explicações genéricas
+* exemplos simplificados
+* resumos
+
+Quero:
+
+* migration SQL REAL
+* pronta para produção/laboratório
+* completa
+* organizada por blocos
+* com comentários
+
+━━━━━━━━━━━━━━━━━━━
+11. AO FINAL
+━━━━━━━━━━━━━━━━━━━
+
+Quero também:
+
+A)
+lista das tabelas criadas
+
+B)
+lista dos triggers
+
+C)
+lista das policies
+
+D)
+lista dos buckets
+
+E)
+lista dos canais realtime utilizados
+
+F)
+possíveis riscos arquiteturais encontrados
+
+━━━━━━━━━━━━━━━━━━━
+12. IMPORTANTE
+━━━━━━━━━━━━━━━━━━━
+
+NÃO modificar o app ainda.
+
+Primeiro quero:
+
+1. criar TODA a infraestrutura no Supabase
+2. validar login
+3. validar CRUD
+4. validar realtime
+5. validar uploads
+6. validar rankings
+7. validar admin
+
+SOMENTE DEPOIS começaremos:
+
+* nova gamificação
+* loja
+* skins
+* backgrounds
+* conquistas
+* sistema sazonal
+* passes
+* economia interna
+* missões online
+
+Quero primeiro estabilizar oficialmente o backend do laboratório.

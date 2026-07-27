@@ -1,0 +1,18 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: We are exposing the peer-review star rating system directly onto both the user lobby list items and the public profile views. Do not expose private columns (email, phone) protected by LGPD. All mathematical averages must be computed server-side via views or aggregates.
+
+TASK OVERVIEW:
+Inject the pre-existing peer-evaluation star rating data into two precise locations:
+1. Directly in the online/offline lobby list rows (next to or below the user's name).
+2. Inside the public profile modal that opens when clicking a user's name.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Review how peer evaluation ratings are tracked in the database (typically inside `sessions` or a reviews table, checking rows where the targeted user was the 'parceiro' or evaluator).
+2. Update the secure database view `public.profiles_public` to include an aggregated, read-only field: `avg_partner_rating` (numeric average of stars) and `total_reviews_count` (integer count of evaluations).
+3. Update the frontend TypeScript definition for `PublicProfile` to reflect these two new fields: `avg_partner_rating?: number` and `total_reviews_count?: number`.
+4. Locate the lobby screen/component displaying the online and offline lists (typically `src/pages/training/Lobby.tsx`, `src/components/training/UserLobbyList.tsx`, or similar files rendering the user directory before a match is made).
+5. Modify the individual user list row/item component: fetch the `avg_partner_rating` from the public profile object and render a compact star element next to or directly under the doctor's name (e.g., a single small gold star icon from `lucide-react` followed by the text "4.8 (12)"). If they have 0 reviews, display a subtle tag or text like "Novo" or omit the count gracefully.
+6. Modify the main User Public Profile Modal component to also display the full row of stars proportionally filled using the `Star` icon from `lucide-react`, matching the styling of an authority metrics score.
+7. Verify that the changes compile cleanly with zero TypeScript errors and do not disrupt existing online/offline polling loops or presence logic.
+
+OUTPUT REQUIRED:
+Confirm which lobby list components and view files were refactored. Explain how rendering the aggregate score directly on the grid interface optimizes trust-based partner picking.

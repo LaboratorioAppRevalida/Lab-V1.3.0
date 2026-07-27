@@ -1,0 +1,26 @@
+SYSTEM INSTRUCTION & ARCHITECTURE MANDATE:
+We are implementing an independent, decoupled text-chat module (Global Chat via Realtime Broadcast + Private DM Chat via `private_messages` table). All UI and specific logic MUST live under `src/components/chat/` to make it easily removable if needed. The bottom navigation bar must include the "Chat" tab in the second position ("Início", "Chat", "Progresso", "Notícias", "Perfil").
+
+DETAILED SPECIFICATIONS:
+1. PRIVATE CHAT CONTACT LIST FILTERING:
+   • The sidebar/contact list for Private Chat must NOT show all app users. It must ONLY show users who:
+     a) Are marked as favorites by the current user.
+     b) OR have at least one message exchanged with the current user in the `private_messages` table within the active history.
+   • For each contact, render their profile picture (`avatar_url` from the profiles table), their full name, and their real-time Presence status indicator (Online, Offline, Em Estação).
+
+2. DEEP LINKING / SHORTCUT FROM PUBLIC PROFILE:
+   • In `src/components/PerfilPublico.tsx` (or the public profile modal), add a chat bubble icon button next to the "Favorite" button.
+   • Clicking this button must:
+     a) Close the public profile modal.
+     b) Switch the active bottom navigation tab to "Chat".
+     c) Inject or set a state parameter (e.g., via a simple state setter or a temporary global variable/context tip) instructing the Private Chat view to immediately open the conversation window with this specific user (even if no history exists yet, adding them temporarily to the active view).
+
+3. CHAT IMPLEMENTATION:
+   • Create `src/components/chat/ChatGlobal.tsx`: Uses `supabase.channel('global_chat')` for transient message broadcasting (no database writes).
+   • Create `src/components/chat/ChatPrivado.tsx`: Displays the filtered contact list with avatars/status dots on one side, and the conversation bubble window on the other. Subscribes to real-time INSERTs on `private_messages`. Includes a text input that supports native emojis.
+   • Create `src/components/chat/AbaChatContainer.tsx`: Combines both sub-tabs cleanly. Includes a subtle notice text: "Nota: O histórico de mensagens privadas é limpo automaticamente a cada 7 dias por segurança e performance."
+
+4. NAVIGATION STEP:
+   • Add the "Chat" option to the bottom navigation array between "Início" and "Progresso" and render `<AbaChatContainer />` when selected. Ensure zero modifications to the core OSCE simulation code.
+
+Execute all file creations and component integration cleanly. Verify the application builds successfully with zero TypeScript compilation errors.

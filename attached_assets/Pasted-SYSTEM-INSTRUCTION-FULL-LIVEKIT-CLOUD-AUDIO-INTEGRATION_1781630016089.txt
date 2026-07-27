@@ -1,0 +1,35 @@
+SYSTEM INSTRUCTION - FULL LIVEKIT CLOUD AUDIO INTEGRATION (END-TO-END):
+We are ready to implement the real-time audio communication layer using LiveKit Cloud. We will utilize the architectural map discovered during your recent audit. 
+
+ENVIRONMENT & CREDENTIALS NOTICE:
+The user has already configured LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET securely inside the Replit Secrets panel. You must consume them via 'process.env' on the backend layer.
+
+Please execute the following implementation steps with absolute architectural precision, ensuring zero TypeScript compilation or build errors:
+
+1. PACKAGES INSTALLATION:
+   • Install the official dependencies: "livekit-client", "@livekit/components-react", and the server-side helper "livekit-server-sdk".
+
+2. SECURE TOKEN GENERATION LAYER (BACKEND):
+   • Create a secure backend API endpoint or server function (e.g., api/livekit-token.ts) that reads the Replit Secrets.
+   • It must accept 'roomName' (which will map to the multiplayer_sessions.id UUID) and 'participantName' (the user's displayName, email, or role).
+   • Use the 'livekit-server-sdk' AccessToken class to sign a secure JWT with permissions: 'roomJoin: true', 'audioPlayback: true', and 'audioRecord: true'. Set an expiration limit of 2 hours.
+
+3. GLOBAL AUDIO CONTEXT & CORE RULES (FRONT-END):
+   • Create a React Context Provider named "LiveKitAudioContext.tsx" to wrap our training/simulation routes.
+   • This context will handle the persistent LiveKit Room instance, connection states, and actions.
+   • CRITICAL USER RULE (MUTED BY DEFAULT): When a participant successfully connects to a room for the first time, their local microphone track MUST BE COMPLETELY DISABLED/MUTED BY DEFAULT ('audio: false' or immediate track mute). They must explicitly click the UI button to unmute themselves.
+
+4. SALA DE ESPERA INTEGRATION (MedicoEspera.tsx):
+   • As soon as both users hit the Waiting Room state (status === "waiting"), trigger the LiveKit token request and connect them to the room using the activeSessionId UUID. This allows the Actor/Patient and the Doctor/Student to talk and align workflows before the official countdown starts.
+   • Integrate a stunning, single-click Glassmorphic floating microphone toggle button into the UI. Show immediate visual feedback: Muted (🔇, subtle danger/gray accent) vs Active (🎙️, glowing emerald pulse).
+
+5. SEAMLESS ACTIVE STATION TRANSITION (Estacao.tsx):
+   • Because the room connection state lives in the parent Audio Context, moving from the Waiting Room to the Active Station (/treino/espera → /treino/estacao) when the doctor clicks "Iniciar estação" must NOT interrupt the call. The voice stream must remain fully continuous and uninterrupted.
+   • Mount the exact same glassmorphic microphone toggle control button inside Estacao.tsx.
+   • HARD REFRESH RECOVERY: If a user refreshes the page mid-station, your initialization code must respect the 'isRestoringSessionRef.current' guard. Only fetch the token and re-join the LiveKit room AFTER the activeSessionId has been fully recovered from the Supabase database.
+
+6. CLEANUP & FAIL-SAFE DESIGN:
+   • Disconnect and clean up the LiveKit room session gracefully when 'encerrarEstacao()' or 'exitTraining()' is triggered.
+   • If a token fetch fails or a network dropout happens, intercept the exception gracefully, show an elegant alert toast ("Não foi possível conectar ao canal de áudio"), but DO NOT crash the active simulation screen or interfere with the ticking countdown timers.
+
+Maintain absolute code isolation, strict typing, and verify the entire build passes cleanly.

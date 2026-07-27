@@ -1,0 +1,272 @@
+Você irá implementar uma camada PROFISSIONAL de detecção de desconexão para o multiplayer da plataforma Revalida, SEM quebrar a arquitetura recente de timer autoritativo que já está funcionando.
+
+IMPORTANTE:
+
+* NÃO reescrever o sistema atual.
+* NÃO alterar a arquitetura do timer_started_at.
+* NÃO mexer no dead reckoning.
+* NÃO tocar em uploads, auth, XP, rankings, estrelas ou qualquer sistema fora do multiplayer.
+* NÃO criar nova arquitetura paralela.
+* Apenas EVOLUIR a detecção de disconnect/reconnect existente.
+
+CONTEXTO ATUAL (JÁ FUNCIONA):
+
+* timer_started_at + timer_remaining_seconds = autoridade do timer
+* dead reckoning funcionando
+* reconnect funcionando
+* pause manual funcionando
+* heartbeat realtime funcionando
+* reconnect automático funcionando
+* timer drift praticamente resolvido
+
+PROBLEMA REAL ATUAL:
+Quando um usuário:
+
+* desliga Wi-Fi
+* perde internet abruptamente
+* troca de rede
+* entra em túnel/elevador
+* mobile suspende rede
+
+o websocket do Supabase demora alguns segundos para morrer oficialmente.
+
+Resultado:
+
+* o timer continua rodando
+* o sistema não detecta disconnect imediatamente
+* depois ocorre reconnect normalmente
+
+Além disso:
+NÃO QUEREMOS falsos positivos.
+Micro instabilidades NÃO devem:
+
+* pausar sessão
+* gerar reconnect spam
+* gerar loops de pause/resume
+* causar flickering online/offline
+
+OBJETIVO:
+Implementar uma arquitetura de:
+
+* heartbeat watchdog
+* soft disconnect
+* grace period
+* anti-thrashing
+* reconnect cooldown
+
+ARQUITETURA OBRIGATÓRIA
+
+==================================================
+
+1. HEARTBEAT TIMESTAMP AUTORITATIVO
+   ==================================================
+
+Adicionar:
+
+* lastHeartbeatAt
+* partnerLastHeartbeatAt
+
+Atualizar SEMPRE que:
+
+* heartbeat realtime chegar
+* track() ocorrer
+* qualquer evento realtime válido ocorrer
+
+NÃO depender apenas de websocket CLOSED.
+
+==================================================
+2. SOFT DISCONNECT
+==================
+
+Criar 3 estados distintos:
+
+CONNECTED
+SUSPECTED_DISCONNECT
+DISCONNECTED
+
+Fluxo correto:
+
+0–8 segundos sem heartbeat:
+
+* continuar normal
+
+8–15 segundos sem heartbeat:
+
+* entrar em SUSPECTED_DISCONNECT
+* NÃO pausar timer ainda
+* exibir “Reconectando parceiro…”
+* NÃO broadcast pause
+* NÃO alterar timer
+
+15+ segundos sem heartbeat:
+
+* confirmar disconnect
+* pausar timer automaticamente
+* persistir timer_remaining_seconds
+* broadcast TIMER_PAUSE
+* status “paused_disconnect”
+
+IMPORTANTE:
+Micro perdas NÃO devem congelar a sessão.
+
+==================================================
+3. ANTI-THRASHING
+=================
+
+Adicionar proteção contra loops.
+
+Após:
+
+* pause automático
+* reconnect automático
+* resume automático
+
+Criar cooldown mínimo:
+
+* 10 segundos
+
+Durante cooldown:
+
+* ignorar novas mudanças automáticas de estado
+* evitar pause/resume em loop
+
+==================================================
+4. RECONNECT ESTÁVEL
+====================
+
+Quando heartbeat voltar:
+
+SE estava em:
+
+* SUSPECTED_DISCONNECT:
+  apenas restaurar CONNECTED
+  SEM pausar/resumir sessão
+
+SE estava em:
+
+* DISCONNECTED:
+  executar reconnect real:
+
+  * resumeSession()
+  * novo timer_started_at
+  * re-anchor
+  * broadcast TIMER_RESUME
+
+==================================================
+5. TIMER NUNCA PODE:
+====================
+
+* acelerar
+* desacelerar
+* reiniciar
+* acumular drift
+* resetar
+* divergir progressivamente
+
+Preservar TOTALMENTE:
+
+* timer_started_at
+* timer_remaining_seconds
+* dead reckoning
+
+==================================================
+6. NÃO CRIAR DUPLICIDADE
+========================
+
+NÃO criar:
+
+* múltiplos intervals
+* múltiplos watchdogs
+* múltiplos reconnect timers
+* listeners duplicados
+
+Garantir cleanup completo:
+
+* clearInterval
+* unsubscribe
+* removeEventListener
+
+==================================================
+7. UI
+=====
+
+Adicionar estado visual discreto:
+
+SUSPECTED_DISCONNECT:
+
+* banner amarelo suave:
+  “Reconectando parceiro…”
+
+DISCONNECTED:
+
+* banner vermelho:
+  “Sessão pausada aguardando reconexão”
+
+CONNECTED:
+
+* remover banners
+
+NÃO criar modais.
+NÃO bloquear UI.
+
+==================================================
+8. IMPORTANTE
+=============
+
+NÃO quebrar:
+
+* pause manual
+* reconnect manual
+* realtime presence
+* lobby online/offline
+* status existing
+* multiplayerSessionService
+* TrainingContext
+* StationTimer
+
+==================================================
+9. ANTES DE ESCREVER CÓDIGO
+===========================
+
+Faça:
+
+* auditoria completa dos fluxos atuais
+* localizar todos os heartbeats
+* localizar todos os reconnects
+* localizar todos os intervals
+* localizar todos os broadcasts TIMER_PAUSE/TIMER_RESUME
+
+Depois:
+
+* implementar incrementalmente
+* rodar typecheck completo
+* verificar ausência de race conditions
+
+==================================================
+10. RESULTADO ESPERADO
+======================
+
+Cenário ideal:
+
+Usuário perde internet por 3 segundos:
+
+* nada acontece
+
+Usuário perde internet por 10 segundos:
+
+* “Reconectando parceiro…”
+
+Usuário perde internet por 20 segundos:
+
+* sessão pausa
+* timer salva corretamente
+
+Usuário reconecta:
+
+* timer continua sincronizado
+* sem drift
+* sem loops
+* sem pause/resume repetitivo
+
+Objetivo final:
+Multiplayer extremamente estável mesmo em redes ruins/mobile.

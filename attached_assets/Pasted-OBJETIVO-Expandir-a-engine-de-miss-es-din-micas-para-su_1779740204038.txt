@@ -1,0 +1,172 @@
+OBJETIVO:
+Expandir a engine de missões dinâmicas para suportar regras avançadas de streak, nota, multiplayer e tempo, SEM quebrar nenhuma funcionalidade existente.
+
+ANTES DE CODAR:
+
+1. Audite completamente:
+
+* missionRulesEngine.ts
+* missionService.ts
+* Conquistas.tsx
+* gamificationStorage.ts
+* tipos de histórico de sessão
+* onde as notas das estações são armazenadas
+* onde duração das sessões é armazenada
+* onde multiplayer é salvo
+* onde streak/login é salvo
+
+2. NÃO remover:
+
+* MISSIONS[]
+* sistema legado
+* fallback offline
+* progressão atual
+* XP atual
+* rankings
+* realtime
+* multiplayer
+
+3. NÃO alterar:
+
+* auth
+* realtime
+* sessões
+* uploads
+* storage
+* ranking
+* training flow
+
+IMPLEMENTAR:
+
+FASE A — NOVOS TIPOS DE REGRA
+
+Adicionar suporte na engine para:
+
+1. login_streak
+   Ex:
+   {
+   "type": "login_streak",
+   "days": 7
+   }
+
+2. session_count
+   Ex:
+   {
+   "type": "session_count",
+   "area": "Cirurgia",
+   "count": 10
+   }
+
+3. average_score
+   Ex:
+   {
+   "type": "average_score",
+   "area": "Clinica Médica",
+   "minimum": 8,
+   "count": 5
+   }
+
+4. min_score
+   Ex:
+   {
+   "type": "min_score",
+   "minimum": 9,
+   "count": 3
+   }
+
+5. multiplayer_count
+   Ex:
+   {
+   "type": "multiplayer_count",
+   "count": 10
+   }
+
+6. time_spent_minutes
+   Ex:
+   {
+   "type": "time_spent_minutes",
+   "area": "Pediatria",
+   "minutes": 120
+   }
+
+FASE B — ENGINE
+
+Expandir:
+
+* matchRule()
+* evaluateRule()
+* evaluateMissionProgress()
+
+Sem quebrar rules antigas.
+
+Todas as regras devem continuar funcionando:
+
+* area
+* role
+* multiplayer
+* count
+
+FASE C — ADMIN PANEL
+
+No AdminGamificacao:
+
+Adicionar editor visual completo para os novos tipos de regra.
+
+Exemplos:
+
+* dropdown tipo de regra
+* campo área
+* campo nota mínima
+* campo minutos
+* campo streak
+* campo quantidade
+
+O formulário deve mudar dinamicamente conforme o tipo da regra.
+
+FASE D — CONQUISTAS
+
+Renderizar corretamente:
+
+* barras de progresso
+* labels legíveis
+* porcentagem
+* status concluído
+
+Exemplos:
+“Cirurgia · 7/10”
+“Média ≥ 8 · 3/5”
+“Login consecutivo · 5/7 dias”
+
+FASE E — SEGURANÇA
+
+IMPORTANTE:
+
+* ZERO any
+* ZERO loops infinitos
+* ZERO regressões
+* ZERO alterações em realtime
+* ZERO alterações em multiplayer
+* ZERO alterações em auth
+
+FASE F — COMPATIBILIDADE
+
+Garantir:
+
+* missões antigas continuam funcionando
+* MISSIONS[] continua fallback
+* Supabase continua fonte primária
+* progresso atual preservado
+* claims preservados
+
+AO FINAL:
+
+1. Rodar typecheck completo
+2. Verificar console sem erros
+3. Validar hot reload
+4. Entregar relatório detalhado:
+
+* arquivos alterados
+* novas regras suportadas
+* exemplos de JSON
+* riscos residuais
+* necessidade (ou não) de SQL adicional

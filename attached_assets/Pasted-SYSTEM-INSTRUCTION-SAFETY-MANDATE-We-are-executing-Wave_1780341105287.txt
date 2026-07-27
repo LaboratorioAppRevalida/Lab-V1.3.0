@@ -1,0 +1,17 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: We are executing Wave 7 (Step 7.2 - Pagination for Training History List). Do not alter any database tables, migrations, or active RPCs. Maintain absolute backward compatibility with the data shape expected by the performance graphics and components inside the performance/history dashboards.
+
+TASK OVERVIEW:
+Implement server-side pagination for the user's training history list to prevent client-side performance degradation as doctors accumulate dozens of completed OSCE sessions during June testing.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Locate the service or function responsible for fetching the user's completed history from the `sessions` table (typically found in `src/services/sessionService.ts` or inside `TrainingContext.tsx` under a name like `fetchUserSessions`, `getHistory`, or `loadSessions`).
+2. Notice if the query pulls all rows via a flat select. Refactor this function to accept pagination parameters: `page: number` and `pageSize: number` (defaulting to `pageSize = 10`).
+3. Utilize Supabase's `.range(from, to)` modifier combined with `count: 'exact'` to execute clean server-side pagination. Ensure rows are ordered by `ended_at` or `created_at` descending, so recent exams load first.
+4. Update the return type of this service function to supply both the paginated array of records and a metadata field indicating if there are more rows available (`hasMore: boolean`) or the total count.
+5. Locate the frontend UI component or dashboard tab displaying the list of past sessions (e.g., `src/pages/dashboard/History.tsx`, `src/components/HistoryList.tsx`, or similar view files).
+6. Update this view state: implement an incremental loading pattern. Maintain an array state that appends newly fetched rows, track the current page index, and render a "Carregar Mais" (Load More) button or an infinite scroll trigger at the bottom of the list.
+7. Display a clean loading indicator/skeleton while fetching the next batch, and hide the button automatically when `hasMore` becomes false.
+8. Verify that existing performance graphs or metric summaries (which might require all session scores to calculate general averages) are either unaffected or still receive their necessary global summaries through a separate lightweight aggregate fetch if required, ensuring no UI statistics are broken.
+
+OUTPUT REQUIRED:
+Confirm which files were refactored. Explain how shifting to server-side pagination protects the client app from rendering freezes when history row counts scale.

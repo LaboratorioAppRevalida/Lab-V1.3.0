@@ -1,0 +1,252 @@
+AUDITORIA COMPLETA DE PRODUTO (UI + FLUXOS + SISTEMA)
+🎯 OBJETIVO
+
+Realizar uma auditoria completa e detalhada do aplicativo existente, com foco principal em:
+
+Estrutura do sistema
+Interface visual (UI/UX)
+Fluxos de navegação
+Componentes clicáveis
+Funcionalidades reais implementadas
+Jornadas completas do usuário
+
+⚠️ NÃO corrigir nada
+⚠️ NÃO propor melhorias ainda
+⚠️ NÃO refatorar código
+⚠️ NÃO otimizar sistema
+
+Somente DESCREVER com máxima precisão o que existe.
+
+🧠 NÍVEL DA AUDITORIA
+
+Atue como:
+
+Product Analyst (nível senior)
+UX Researcher
+System Architect
+Frontend Auditor
+
+Seu trabalho é produzir um MAPA COMPLETO DO PRODUTO REAL, baseado no código e banco de dados.
+
+🧩 PRINCÍPIO FUNDAMENTAL
+
+Tudo deve ser baseado no que EXISTE de fato no código.
+
+Não inferir funcionalidades inexistentes.
+
+Não assumir intenções de design.
+
+Se algo não estiver claro, declarar:
+
+“não foi possível confirmar no código”
+
+🧱 ETAPA 1 — MAPA GERAL DO SISTEMA
+
+Descreva a arquitetura geral do sistema incluindo:
+
+Frontend (estrutura de páginas/telas)
+Backend (APIs, serviços, lógica)
+Banco de dados (principais tabelas)
+Realtime / WebSocket / Supabase
+Módulos principais do sistema
+
+📌 Resultado esperado:
+Um mapa estrutural do sistema em forma hierárquica.
+
+🧭 ETAPA 2 — JORNADA COMPLETA DO USUÁRIO
+
+Descrever passo a passo desde:
+
+2.1 Criação de conta
+Tela de login
+Cadastro
+Autenticação
+Fluxo de entrada
+2.2 Primeiro acesso
+Tela inicial
+Onboarding (se existir)
+Redirecionamentos
+2.3 Uso principal da plataforma
+Fluxo principal do usuário
+Ações mais comuns
+2.4 Uso secundário / pouco utilizado
+áreas pouco acessadas
+funções ocultas
+fluxos alternativos
+
+📌 Resultado esperado:
+Uma narrativa completa da experiência do usuário do início ao fim.
+
+🖥️ ETAPA 3 — ANÁLISE COMPLETA DA INTERFACE (UI)
+
+Descrever com alto nível de detalhe:
+
+3.1 Estrutura visual geral
+Layout (sidebar, header, main content)
+Responsividade (se existe)
+Organização das telas
+3.2 Componentes clicáveis
+
+Para cada área:
+
+Botões
+Cards
+Menus
+Tabs
+Dropdowns
+Ícones interativos
+Modais
+Inputs
+Drag & drop (se existir)
+3.3 Navegação
+Rotas principais
+Fluxo entre páginas
+Navegação interna (tabs / context switching)
+
+📌 Importante:
+Descrever exatamente o que o usuário vê e clica.
+
+📊 ETAPA 4 — DASHBOARD E TELAS PRINCIPAIS
+
+Mapear detalhadamente:
+
+Dashboard principal
+Telas de progresso
+Telas de gamificação
+Perfil do usuário
+Histórico
+Relatórios
+Configurações
+
+Para cada tela:
+
+O que aparece
+Quais dados são exibidos
+Quais ações são possíveis
+Quais interações existem
+🎮 ETAPA 5 — FUNCIONALIDADES COMPLETAS
+
+Listar todas as funcionalidades reais:
+
+Autenticação
+Sistema de XP
+Níveis
+Missões
+Conquistas
+Multiplayer
+Eventos
+Ranking
+Streaks
+Simulações (OSCE / casos clínicos)
+Checklists
+Timer
+Notificações
+Sistema de progresso
+
+Para cada funcionalidade:
+
+onde aparece na UI
+como o usuário interage
+qual fluxo ativa ela
+🔄 ETAPA 6 — FLUXOS CRÍTICOS
+
+Descrever fluxos completos como diagramas textuais:
+
+Fluxos obrigatórios:
+Login → Dashboard
+Início de sessão de treino
+Execução de simulação
+Multiplayer session (host e guest)
+Finalização de sessão
+Geração de XP
+Conclusão de missões
+Desbloqueio de conquistas
+
+📌 Mostrar:
+
+entrada
+estados intermediários
+saídas
+eventos disparados
+🧠 ETAPA 7 — SISTEMA DE ESTADOS
+
+Descrever:
+
+Estados da aplicação
+Estados de sessão
+Estados de multiplayer
+Estados de UI (loading, error, success, idle)
+
+E como esses estados mudam no sistema.
+
+🧩 ETAPA 8 — COMPONENTES E ARQUITETURA FRONTEND
+
+Mapear:
+
+componentes principais React (ou equivalente)
+contextos (TrainingContext etc)
+hooks
+services
+stores
+managers (realtimeStateManager etc)
+
+Explicar:
+
+o papel de cada um
+onde são usados
+como interagem
+🌐 ETAPA 9 — BANCO DE DADOS (VISÃO FUNCIONAL)
+
+Descrever tabelas principais e sua função na experiência do usuário:
+
+users/profiles
+sessions
+multiplayer_sessions
+missions
+achievements
+xp / levels
+events
+
+Explicar:
+
+como cada tabela aparece na UI
+como influencia o usuário
+⚠️ ETAPA 10 — LIMITAÇÕES OBSERVADAS
+
+Listar de forma neutra:
+
+telas incompletas
+fluxos interrompidos
+funcionalidades não conectadas à UI
+áreas sem navegação
+inconsistências de experiência
+📌 ETAPA 11 — RELATÓRIO FINAL
+
+Entregar:
+
+11.1 Visão geral do produto
+11.2 Mapa completo do sistema
+11.3 Jornada do usuário consolidada
+11.4 Lista de funcionalidades reais
+11.5 Mapa de UI completo
+🧾 FORMATO DE SAÍDA
+
+O relatório deve ser:
+
+estruturado
+técnico
+claro
+sem suposições
+baseado exclusivamente no código
+
+Pode usar diagramas textuais quando necessário.
+
+🚨 REGRA FINAL
+
+Não sugerir melhorias.
+
+Não corrigir bugs.
+
+Não propor redesign.
+
+Somente AUDITAR e DESCREVER.

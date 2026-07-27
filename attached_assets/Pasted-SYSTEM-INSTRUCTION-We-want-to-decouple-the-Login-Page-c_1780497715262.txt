@@ -1,0 +1,28 @@
+SYSTEM INSTRUCTION: We want to decouple the Login Page customization from the global application theme. The Login Page must have its own independent styling variables and a dedicated sandbox preview inside the Admin Personalization dashboard.
+
+Please strictly execute these database, service, and UI layout upgrades:
+
+1. DATABASE LAYOUT EXTENSION (Supabase Migration):
+   • In the `platform_config` table, add the following independent columns for the login screen, replicating the existing control structure with safe defaults:
+     - `login_bg_color` (text, default: '#03161a')
+     - `login_glass_color` (text, default: '#06181d')
+     - `login_accent_color` (text, default: '#06b6d4')
+     - `login_bg_image_url` (text, nullable)
+     - `login_bg_image_opacity` (integer, default: 30)
+     - `login_bg_image_blur` (integer, default: 0)
+     - `login_bg_image_scale` (integer, default: 100)
+     - `login_bg_image_x` (integer, default: 50)
+     - `login_bg_image_y` (integer, default: 50)
+   • Update `platformConfigService.ts` and `PlatformThemeContext` to safely map, load, and cache these new independent parameters.
+
+2. ADMIN DASHBOARD TABS & LOGIN SANDBOX (AdminPersonalizacao.tsx):
+   • Refactor the top header of `AdminPersonalizacao.tsx` to include an elite glassmorphic Tab Navigation system: "Área Interna" and "Tela de Login".
+   • Clicking "Tela de Login" switches the left column controls to bind directly to the new `login_*` state tokens (including an isolated Drag-and-Drop file picker for the login background asset).
+   • Clicking "Tela de Login" also switches the right column Sandbox Preview window to render a miniature replication of the actual App Login Screen (complete with Username input, Password input, and a glowing "Entrar" button) reacting instantly to the slider adjustments.
+   • Ensure `handleSave` intelligently uploads the login background image to `resumos-media/login-bg-${Date.now()}` and pushes the full configuration payload to the DB.
+
+3. LOGIN PAGE CONSUMER REWRITE (Login.tsx / AuthPage.tsx):
+   • Update the core Login/Authentication page structure to ignore global app styles and instead consume the new `login_*` tokens from the `usePlatformTheme()` context.
+   • Replicate the isolated background layer method (with transform, opacity, blur, and positioning) on the Login page wrapper so the login glass panels stay beautifully sharp.
+
+Ensure the final implementation builds seamlessly with zero TypeScript compiler errors.

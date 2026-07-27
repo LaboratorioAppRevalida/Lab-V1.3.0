@@ -1,0 +1,132 @@
+Vamos implementar a FASE 1C — Resumo Geral do Evento.
+
+IMPORTANTE:
+
+- NÃO alterar missionProgressEngine.
+- NÃO alterar TrainingContext.
+- NÃO alterar sistema de títulos.
+- NÃO alterar sistema de claims.
+- NÃO alterar multiplayer.
+- NÃO alterar realtime.
+- NÃO alterar lógica existente de missões.
+- NÃO recalcular missões no frontend.
+- NÃO criar novas tabelas.
+- NÃO adicionar dependências novas.
+
+OBJETIVO
+
+Adicionar um card de progresso geral no topo da página:
+
+/conquistas/evento/:id
+
+utilizando apenas dados já existentes.
+
+--------------------------------------------------
+CARD RESUMO DO EVENTO
+--------------------------------------------------
+
+Exibir:
+
+- nome do evento
+- percentual geral
+- quantidade de missões concluídas
+- quantidade total de missões
+- barra de progresso geral
+
+Exemplo:
+
+Evento de Clínica Médica
+
+████████░░ 80%
+
+8 de 10 missões concluídas
+
+--------------------------------------------------
+CÁLCULO
+--------------------------------------------------
+
+Utilizar:
+
+fetchEventMissions()
+
+e
+
+fetchEventMissionProgress()
+
+já existentes.
+
+Missão concluída:
+
+completed = true
+
+Percentual:
+
+(concluidas / total) * 100
+
+--------------------------------------------------
+RECOMPENSAS
+--------------------------------------------------
+
+Se já existirem recompensas vinculadas ao evento:
+
+mostrar resumo:
+
+- XP total do evento
+- quantidade de títulos
+- quantidade de badges (se existirem futuramente)
+
+Exemplo:
+
+Recompensas:
+
+⭐ 500 XP
+🏆 1 título
+
+Sem listar detalhes ainda.
+
+--------------------------------------------------
+ESTADOS
+--------------------------------------------------
+
+Loading:
+- skeleton
+
+Sem missões:
+- card informativo
+
+Sem recompensas:
+- ocultar seção
+
+--------------------------------------------------
+PERFORMANCE
+--------------------------------------------------
+
+- Não adicionar queries extras.
+- Utilizar dados já carregados.
+- Não criar loops.
+- Não criar timers.
+- Não criar polling.
+
+--------------------------------------------------
+RESPONSIVIDADE
+--------------------------------------------------
+
+Compatível desktop e mobile.
+
+--------------------------------------------------
+VERIFICAÇÃO
+--------------------------------------------------
+
+Ao finalizar:
+
+- rodar typecheck
+- verificar runtime
+- listar arquivos alterados
+- confirmar:
+
+✓ missionProgressEngine intacto
+✓ títulos automáticos intactos
+✓ claims intactos
+✓ multiplayer intacto
+✓ realtime intacto
+✓ TypeScript 0 erros

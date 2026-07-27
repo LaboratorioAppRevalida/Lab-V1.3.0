@@ -1,0 +1,25 @@
+Olá, Agente. Estamos iniciando um processo de refatoração arquitetural crítica no sistema de estilização e identidade visual da plataforma. O objetivo estratégico é descontinuar o motor de personalização dinâmica atual (que injeta estilos inline baseados em hexadecimais arbitrários persistidos no banco de dados) e substituí-lo por uma arquitetura bi-tema nativa, estática e otimizada (Modo Claro/Hospital e Modo Escuro/Premium Noturno), orquestrada puramente via modificadores semânticos do Tailwind CSS (classe 'dark' ou seletor por atributo).
+
+Como estamos operando DIRETAMENTE no ambiente original de produção, você deve agir estritamente sob o protocolo de ZERO CODE ALTERATION (apenas leitura e análise estática). 
+
+Por favor, execute uma varredura minuciosa na base de código e gere um Relatório Técnico de Auditoria Estrutural estruturado nos seguintes tópicos:
+
+1. ARQUITETURA DE ESTADO DO TEMA (STATE MANAGEMENT AUDIT):
+- Localize onde o estado do tema global é instanciado no frontend. Identifique todos os arquivos que contenham instâncias de Context API, Redux slices, Zustand stores ou hooks customizados (ex: useTheme, ThemeContext).
+- Mapeie se há condições de concorrência ou reidratação conflitante entre o LocalStorage, cookies de sessão e a resposta da query de perfil de usuário do Supabase.
+
+2. MAPEAMENTO DE ESTILIZAÇÃO INLINE E DOMINÂNCIAS (INLINE STYLES OVERRIDE):
+- Rastreie todos os componentes das visões de Administração (especialmente AdminPersonalizacao.tsx) e do Aluno (Dashboard, Inicio.tsx, Checklists, Resumos e Notícias) que aplicam estilização inline através da propriedade 'style={{ ... }}'.
+- Identifique quais componentes dependem de propriedades de objetos de cor (ex: tema.cor_fundo, tema.cor_destaque) mapeadas dinamicamente via JS.
+
+3. CONFLITOS DE HARDCODING E INTERRUPÇÃO DA CASCATA TAILWIND:
+- Localize arquivos CSS globais (ex: index.css, globals.css, app.css) e analise se há seletores ou variáveis nativas (:root) injetando cores com a diretiva '!important', o que pode bloquear o reset.
+- Identifique componentes estruturais onde classes de cor estão fixadas rigidamente (ex: bg-slate-900 ou text-white) sem o correspondente modificador condicional 'dark:', impedindo a adaptação visual no modo claro.
+
+4. MAPEAMENTO DE DEPENDÊNCIAS DO BACKEND (SUPABASE SCHEMAS & QUERIES):
+- Identifique todas as referências no código frontend (chamadas RPC, queries via supabase-js, mutations ou hooks do React Query) que buscam ou atualizam tabelas, colunas ou enums dedicados ao antigo painel de personalização (ex: colunas de cores ou tabelas de temas customizados).
+
+5. CONFIGURAÇÃO DE INFRAESTRUTURA VISUAL:
+- Analise o arquivo 'tailwind.config.js' (ou .ts) e indique como a propriedade 'darkMode' está configurada atualmente ('class', 'media' ou se não está declarada).
+
+Execute apenas a análise estática e me entregue a árvore de arquivos impactados com os respectivos caminhos (paths) para planejarmos a limpeza cirúrgica. Não modifique nenhum arquivo.

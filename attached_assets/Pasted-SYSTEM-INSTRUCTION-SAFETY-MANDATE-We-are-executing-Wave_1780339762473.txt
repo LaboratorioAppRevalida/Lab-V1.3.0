@@ -1,0 +1,21 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: We are executing Wave 5 (Step 5.2 - Cross-Validation and Atomic Grade Consolidation for OSCE Multiplayer). Do not alter any active user authentication, RLS views, or profiles_public code. Maintain absolute backward compatibility with the existing schema for `multiplayer_sessions` and `session_grades`.
+
+TASK OVERVIEW:
+Harden the grade submission lifecycle for multiplayer OSCE stations. Move the calculation and final evaluation logic from the client-side React code into a secure PostgreSQL RPC. This ensures that when an evaluator submits a completed checklist, the final grade, percentage, and success metrics are computed atomically by the server based on authoritative checklist answer keys, preventing client-side grade tampering or state mismatches.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Create a new PostgreSQL migration file named `supabase/migrations/014_secure_osce_grading_rpc.sql`.
+2. Inside this migration, design a SECURITY DEFINER RPC function named `public.fn_submit_and_calculate_osce_grade(p_session_id UUID, p_marked_items_json JSONB)`.
+3. The function must execute the following operations server-side:
+   - Verify that the calling user (`auth.uid()`) is authorized to grade this session (e.g., they are the designated evaluator or an admin for the room).
+   - Fetch the active checklist template associated with the session's station.
+   - Cross-reference the `p_marked_items_json` array against the authoritative points/weights defined in the database for that checklist.
+   - Compute the total score, maximum possible score, and final percentage accurately.
+   - Atomically update the row in `multiplayer_sessions` or `sessions`, changing its status to 'completed'.
+   - Insert the verified breakdown into the `session_grades` table.
+4. Locate the frontend service handling grade submission (typically `src/services/multiplayerService.ts`, `src/services/evaluationService.ts`, or inside `TrainingContext.tsx`).
+5. Refactor the submission flow: replace the direct client-side `.insert()` or `.update()` calls to the grades table with a clean execution of the new `supabase.rpc('fn_submit_and_calculate_osce_grade', { ... })` function.
+6. Ensure the UI loading state is properly wired to display a spinner while the server processes the exam metrics and that it compiles cleanly with zero TypeScript errors.
+
+OUTPUT REQUIRED:
+Provide the full SQL content for `014_secure_osce_grading_rpc.sql`. Confirm which frontend services were refactored to route grading through this secure validator.

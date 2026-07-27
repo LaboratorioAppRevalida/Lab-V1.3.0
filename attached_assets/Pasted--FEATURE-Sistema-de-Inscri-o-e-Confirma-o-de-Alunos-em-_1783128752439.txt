@@ -1,0 +1,50 @@
+# FEATURE: Sistema de Inscrição e Confirmação de Alunos em Mentorias Coletivas
+
+## 🎯 OBJETIVO GERAL
+Implementar o fluxo de gestão de participantes para as mentorias em grupo (`group_mentorships`). O suporte (Admin) poderá vincular manualmente alunos confirmados a uma mentoria, o contador de vagas (`current_bookings`) será atualizado automaticamente, e o Mentor poderá visualizar em tempo real a lista de alunos confirmados dentro de cada card no seu painel.
+
+---
+
+## 💾 1. CAMADA DE BANCO DE DADOS (Supabase & Serviços)
+1. **Nova Tabela (`group_mentorship_participants`):**
+   Crie ou certifique-se de que exista uma tabela de junção com a seguinte estrutura através do client do Supabase:
+   - `id`: uuid (primary key)
+   - `group_id`: uuid (foreign key apontando para `group_mentorships`, com `on delete cascade`)
+   - `student_id`: uuid (foreign key apontando para `profiles`, com `on delete cascade`)
+   - `created_at`: timestamp with time zone
+
+2. **Novas Funções de Serviço (`src/lib/mentorshipService.ts`):**
+   - `addStudentToGroup(groupId, studentId)`: Insere um registro na tabela `group_mentorship_participants`. Em seguida, faz um incremento de `+1` no campo `current_bookings` da tabela `group_mentorships`. (Execute ambos em bloco ou garanta a atualização do contador).
+   - `removeStudentFromGroup(groupId, studentId)`: Remove o registro da tabela de participantes e decrementa `-1` no campo `current_bookings`.
+   - `listGroupParticipants(groupId)`: Retorna a lista de perfis (`profiles`) dos alunos vinculados àquele `groupId` fazendo o join necessário.
+
+---
+
+## 🛠️ 2. PAINEL DO ADMINISTRADOR (Confirmação de Alunos)
+**Arquivo Alvo:** `src/pages/admin/AdminMentorias.tsx`
+1. Adicione uma nova aba interna ou seção proeminente chamada **"Gestão de Participantes"**.
+2. Nesta seção, o Administrador deve encontrar:
+   - **Selecione a Mentoria:** Um dropdown (`select`) listando todas as mentorias em grupo ativas (exibindo Título + Mentor).
+   - **Selecione o Aluno:** Um dropdown/busca local listando os usuários cadastrados (tabela `profiles`).
+   - **Botão "Confirmar Aluno":** Ao clicar, invoca `addStudentToGroup(groupId, studentId)`, exibe `toast.success`, limpa a seleção e atualiza o estado local.
+3. **Lista de Confirmados (Abaixo do formulário):** Ao selecionar uma mentoria no dropdown, renderize a lista dos alunos já confirmados nela, contendo o nome do aluno e um botão com ícone de lixeira para remover o aluno caso o suporte precise cancelar a vaga (invocando `removeStudentFromGroup`).
+
+---
+
+## 👨‍🏫 3. PAINEL DO MENTOR (Visualização da Lista)
+**Arquivo Alvo:** `src/pages/mentor/MentorDashboard.tsx`
+1. Vá até a **Aba 3 (Mentorias Coletivas)** onde o mentor visualiza os cards das mentorias que ele criou.
+2. Dentro de cada card de mentoria em grupo, abaixo da barra de progresso de ocupação, implemente uma seção expansível ou uma lista sutil chamada **"Alunos Confirmados ({current_bookings})"**.
+3. Use a função `listGroupParticipants(groupId)` para buscar os nomes dos alunos.
+4. Exiba os alunos em uma lista limpa (pode ser em formato de pequenas tags ou avatares com o nome ao lado usando o padrão premium do app).
+5. Se não houver nenhum aluno confirmado ainda, exiba textualmente: *"Nenhum aluno confirmado até o momento."*
+
+---
+
+## 🎨 4. VISUAL DO ALUNO (Contador de Vagas)
+**Arquivo Alvo:** `src/pages/Mentorias.tsx`
+1. Conforme combinado anteriormente, exiba o badge de ocupação no topo ou rodapé do card usando o ícone `Users`.
+2. Texto do Badge: Exibir `"{session.current_bookings} / {session.max_capacity} vagas preenchidas"`.
+3. Se `current_bookings >= max_capacity`, mude o texto do botão "Garantir Vaga" para "Esgotado", desative o clique (`disabled`) e aplique uma estilização cinza/neutra de esgotado.
+
+Certifique-se de manter o build completamente limpo e livre de erros TypeScript. Avise-me assim que terminar a rodada de implementações paralelizadas!

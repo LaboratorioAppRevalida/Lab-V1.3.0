@@ -1,0 +1,22 @@
+Com base no relatório de auditoria, vamos implementar o ecossistema completo de assinaturas e paywall utilizando o gateway ASAAS (foco em Pix e Cartão recorrente no Brasil). Execute as seguintes tarefas de forma coordenada e cirúrgica para colocarmos em produção hoje:
+
+1. Camada de Dados (Database Migration):
+- Crie e execute uma migration SQL para injetar na tabela 'public.subscriptions' as seguintes colunas essenciais:
+  'gateway' (text, default 'asaas'), 'gateway_customer_id' (text), 'gateway_subscription_id' (text), 'next_billing_date' (timestamptz) e 'canceled_at' (timestamptz).
+
+2. Camada de Servidor (API Webhook Endpoint):
+- No 'artifacts/api-server', instale as dependências necessárias para comunicação e crie a rota 'POST /api/webhooks/asaas'.
+- Implemente o tratamento dos eventos do Asaas:
+  - 'PAYMENT_RECEIVED' ou 'SUBSCRIPTION_CREATED/APPROVED': Localize o usuário e atualize a tabela 'subscriptions' para status = 'ativo', definindo a data de expiração correta.
+  - 'PAYMENT_OVERDUE' ou 'SUBSCRIPTION_DISABLED': Atualize o status para 'expirado' ou 'cancelado'.
+- Utilize o client do Supabase no backend para persistir essas atualizações diretamente.
+
+3. Camada de Contexto e Proteção (Front-end Paywall):
+- No 'AuthContext.tsx', implemente o carregamento automático da assinatura ('subscription') do usuário logado dentro do 'AuthProvider'. Exponha os estados 'subscription' (objeto ou null) e 'isSubscribed' (boolean, que retorna true se o status for 'ativo' ou se o usuário for isAdmin/isColaborador).
+- Crie um componente de rota protegida chamado 'SubscribedRoute.tsx'. Se 'isSubscribed' for falso, redirecione o usuário para a rota '/assinatura'.
+- No 'App.tsx', substitua o wrapper '<ProtectedRoute>' por '<SubscribedRoute>' exclusivamente nas rotas de '/treino/*' (Estações) e '/resumos'.
+
+4. Vitrine de Planos:
+- Na página '/assinatura' (VitrinePlanos.tsx), prepare os botões de CTA para receberem e dispararem a abertura do link de checkout correspondente a cada plano (Mensal, Semestral, Anual), tratando o estado visual enquanto o link é processado.
+
+Mantenha o padrão de tratamento de erros, tipagem estrita com TypeScript e logs limpos. Me avise assim que concluir cada etapa para fazermos os testes e o push das chaves de API nos Secrets.

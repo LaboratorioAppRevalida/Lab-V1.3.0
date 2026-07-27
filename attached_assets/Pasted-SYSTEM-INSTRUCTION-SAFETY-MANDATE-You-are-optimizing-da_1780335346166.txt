@@ -1,0 +1,15 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: You are optimizing data-fetching performance and preventing content leaks. Do not alter any database tables, migrations, or RLS policies. Maintain backward compatibility for the structural shape of a single station dataset when active in training.
+
+TASK OVERVIEW:
+Optimize the station/checklist catalog fetching logic to split heavy text fields (actor briefs, full case files, PEP medical records) away from the initial lightweight listing query. This prevents excessive memory consumption and blocks students from inspecting network payloads to read cheat-sheets before starting an OSCE station.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Locate the service responsible for listing available training stations (typically `src/services/checklistService.ts`, `src/services/stationService.ts`, or inside `TrainingContext.tsx`).
+2. Inspect the listing function (e.g., `fetchAvailableStations()`, `getChecklists()`). Notice if it uses a broad `.select('*')`.
+3. Refactor this catalog listing query to strictly request only lightweight summary columns required to render the catalog cards: `id`, `title`, `description`, `area`, `difficulty`, `estimated_time`, `created_at`. Explicitly exclude heavy columns like `actor_script`, `full_case_details`, `pep_template`, or the full itemized answer keys.
+4. Locate or create a separate fetch function, such as `fetchStationDetailsForTraining(stationId: string)`, which runs *only* when a user clicks "Iniciar Estação". This function will perform a targeted `.select('actor_script, full_case_details, pep_template')` filtered by the chosen station ID.
+5. Connect this new deferred fetch to the loading state inside the station initialization screen/modal so that the heavy data is hydrated into `TrainingContext` exactly when the countdown or simulation begins.
+6. Ensure the code compiles cleanly with no missing TypeScript properties on the listing page or training screen.
+
+OUTPUT REQUIRED:
+Confirm which files were refactored. Explain how decoupling the light summary from the heavy text objects drops network payload weight and secures exam content integrity.

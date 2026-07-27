@@ -1,0 +1,220 @@
+Quero transformar esta nova instância LAB do Revalida em uma infraestrutura oficial, limpa, reproduzível e versionável.
+
+IMPORTANTE:
+NÃO quero implementar novas funcionalidades agora.
+NÃO quero alterar UI.
+NÃO quero refatorar frontend.
+NÃO quero alterar multiplayer, realtime, rankings ou gameplay neste momento.
+
+O foco AGORA é exclusivamente:
+
+* mapear completamente a infraestrutura Supabase
+* identificar toda a arquitetura real do backend
+* preparar migrations oficiais
+* consolidar o schema
+* eliminar ambiguidades arquiteturais
+* separar sistemas oficiais de sistemas legados
+
+━━━━━━━━━━━━━━━━━━━
+CONTEXTO
+━━━━━━━━━━━━━━━━━━━
+
+Esta nova conta Supabase LAB está vazia.
+
+Ela NÃO possui:
+
+* tabelas
+* views
+* triggers
+* policies
+* buckets
+* migrations
+
+O app atual foi migrado via ZIP e o frontend já está funcionando parcialmente, porém o banco ainda não foi reconstruído corretamente.
+
+Já foi realizada anteriormente uma auditoria técnica do app que identificou:
+
+* 13 tabelas principais
+* 1 view
+* triggers implícitos
+* buckets storage
+* sistemas legados em localStorage
+* sistemas duplicados de XP/gamificação
+
+Agora quero transformar isso em uma arquitetura oficial e reproduzível.
+
+━━━━━━━━━━━━━━━━━━━
+OBJETIVO DESTA ETAPA
+━━━━━━━━━━━━━━━━━━━
+
+NESTA ETAPA:
+
+NÃO gerar ainda um SQL gigante completo.
+
+Primeiro quero:
+
+1. AUDITORIA DEFINITIVA DO BACKEND
+2. MAPEAMENTO COMPLETO DAS DEPENDÊNCIAS
+3. DEFINIÇÃO DA ARQUITETURA OFICIAL
+4. IDENTIFICAÇÃO DO QUE É LEGADO
+5. PLANEJAMENTO DAS MIGRATIONS
+
+━━━━━━━━━━━━━━━━━━━
+QUERO QUE VOCÊ IDENTIFIQUE
+━━━━━━━━━━━━━━━━━━━
+
+Para CADA tabela encontrada no app:
+
+* nome da tabela
+* finalidade
+* arquivos que usam
+* colunas
+* tipos
+* constraints
+* foreign keys
+* índices necessários
+* campos obrigatórios
+* campos opcionais
+* dependências
+* uso realtime
+* impacto no sistema
+
+━━━━━━━━━━━━━━━━━━━
+ALÉM DISSO
+━━━━━━━━━━━━━━━━━━━
+
+Quero mapear completamente:
+
+* views
+* triggers
+* policies RLS
+* buckets storage
+* canais realtime
+* presence
+* broadcast
+* funções implícitas
+* enums necessários
+* índices importantes
+* unique constraints
+* relacionamentos críticos
+
+━━━━━━━━━━━━━━━━━━━
+MUITO IMPORTANTE
+━━━━━━━━━━━━━━━━━━━
+
+Quero que você diferencie claramente:
+
+━━━━━━━━━━━━━━━━━━━
+SISTEMAS OFICIAIS
+━━━━━━━━━━━━━━━━━━━
+
+Exemplo:
+
+* profiles
+* sessions
+* multiplayer_sessions
+* checklists
+* resumos
+* noticias
+
+VERSUS
+
+━━━━━━━━━━━━━━━━━━━
+SISTEMAS LEGADOS / DUPLICADOS
+━━━━━━━━━━━━━━━━━━━
+
+Exemplo:
+
+* gamificationStorage.ts
+* XP localStorage
+* streak local
+* notasStorage.ts
+* sistemas paralelos
+
+━━━━━━━━━━━━━━━━━━━
+OBJETIVO PRINCIPAL
+━━━━━━━━━━━━━━━━━━━
+
+Quero descobrir:
+
+* o que realmente deve existir no Supabase
+* o que deve ser descartado
+* o que deve ser migrado
+* o que deve ser consolidado
+* o que hoje é apenas workaround temporário
+
+━━━━━━━━━━━━━━━━━━━
+ARQUITETURA
+━━━━━━━━━━━━━━━━━━━
+
+Quero preparar uma estrutura profissional:
+
+/supabase
+/migrations
+/seed
+/policies
+/storage
+/views
+
+━━━━━━━━━━━━━━━━━━━
+IMPORTANTE
+━━━━━━━━━━━━━━━━━━━
+
+NÃO criar migrations ainda.
+
+Primeiro quero:
+
+* diagnóstico definitivo
+* mapa completo da arquitetura
+* plano correto de migração
+
+━━━━━━━━━━━━━━━━━━━
+ANÁLISE CRÍTICA
+━━━━━━━━━━━━━━━━━━━
+
+Quero que você identifique:
+
+* riscos arquiteturais
+* dependências frágeis
+* triggers implícitos
+* inconsistências de XP
+* problemas de persistência
+* realtime sensível
+* possíveis race conditions
+* dependência excessiva de frontend
+* ausência de validações server-side
+* problemas de escalabilidade
+* problemas de segurança RLS
+
+━━━━━━━━━━━━━━━━━━━
+OBJETIVO FINAL
+━━━━━━━━━━━━━━━━━━━
+
+Quero sair desta etapa com:
+
+✅ mapa definitivo do backend
+✅ arquitetura oficial planejada
+✅ lista de tabelas oficiais
+✅ lista de sistemas legados
+✅ lista de triggers necessários
+✅ lista de policies necessárias
+✅ lista de buckets necessários
+✅ lista de realtime channels
+✅ estratégia profissional de migration
+✅ estratégia de limpeza arquitetural
+✅ ordem correta de implementação
+
+━━━━━━━━━━━━━━━━━━━
+IMPORTANTE
+━━━━━━━━━━━━━━━━━━━
+
+NÃO alterar funcionalidades existentes.
+NÃO quebrar frontend.
+NÃO modificar lógica do multiplayer.
+NÃO modificar realtime.
+NÃO modificar rankings.
+NÃO modificar UI.
+NÃO implementar novas features.
+
+Esta etapa é APENAS:
+auditoria técnica definitiva + planejamento estrutural profissional.

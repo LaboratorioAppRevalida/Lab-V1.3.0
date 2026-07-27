@@ -1,0 +1,79 @@
+Precisamos realizar um grande ajuste técnico e lógico no nosso sistema de mentorias. Ocorreram alguns erros de compilação por arquivos cortados/propriedades incorretas e falhas de sincronização com o banco de dados. 
+
+Por favor, analise as explicações abaixo e substitua os respectivos blocos de código exatamente como instruído.
+
+---
+
+### 1. ARQUIVO: src/lib/mentorshipService.ts (ou onde residirem os serviços do Supabase)
+
+**Problema (Contador Zerado):** As vagas em grupo permanecem em `0/5` ou `0/10` porque, embora o aluno seja inserido na tabela de participantes, a coluna `current_bookings` na tabela principal `group_mentorships` não está sendo incrementada/atualizada ou falta forçar o recarregamento na listagem após a ação.
+* **Ação:** Garanta que dentro das funções `addStudentToGroup` e `removeStudentFromGroup` ocorra um `.update()` atômico na tabela `group_mentorships` alterando a contagem de `current_bookings` (incrementando +1 ou decrementando -1) ou use uma RPC se disponível. Se a listagem do admin lê o tamanho do array de participantes, substitua o contador visual para usar o `participants.length` em vez da coluna estática, mitigando o bug visual de dessincronização de imediato.
+
+---
+
+### 2. ARQUIVO: src/pages/admin/AdminMentorias.tsx
+
+**Bug A (Especialidade no Form):** O formulário tenta ler/salvar `edit.specialty`, mas o correto é `mentor_specialty`.
+* **Substituição (Input do Modal de Edição):**
+```tsx
+// SUBSTITUA O INPUT DE ESPECIALIDADE POR:
+<input
+  type="text"
+  value={edit.mentor_specialty || ""}
+  onChange={(e) => setEdit({ ...edit, mentor_specialty: e.target.value })}
+  className="w-full p-2 border rounded"
+/>
+Bug B (max_capacity Tipo String): Na função handlePublish, a chamada envia uma string em vez do número validado.
+
+Substituição (Dentro de handlePublish):
+
+TypeScript
+// SUBSTITUA A CHAMADA DA FUNÇÃO createGroupMentorship POR:
+await createGroupMentorship({ 
+  mentor_id: form.mentor_id, 
+  title: form.title, 
+  description: form.description || null, 
+  start_time: new Date(form.start_time).toISOString(), 
+  end_time: new Date(form.end_time).toISOString(), 
+  max_capacity: cap // Garante o envio do number convertido pelo parseInt
+});
+Nova Feature (Criação de Mentoria Individual no Admin):
+
+Ação: Verifique por que o formulário ou botão de criação de Mentoria Individual está falhando ou travado no painel administrativo. Certifique-se de que a query de inserção de sessões individuais passe as propriedades de data e ID do mentor corretamente e dê um feedback visual de sucesso (toast).
+
+3. ARQUIVO: src/pages/MentoriasPage.tsx
+Bug A (Data Inválida no WhatsApp): O código tenta ler session.scheduled_to, que não existe no tipo.
+
+Substituição (Mensagem do WhatsApp):
+
+TypeScript
+// CORRIJA A MENSAGEM DO WHATSAPP PARA:
+const msg = `Olá! Sou o aluno ${user?.name || ""} e quero participar da mentoria em grupo "${session.title}" agendada para ${new Date(session.start_time).toLocaleString("pt-BR")}.`;
+Bug B (Nome da propriedade da especialidade): O card do aluno tenta ler .specialties no plural.
+
+Substituição (Card de mentores, por volta da linha 169):
+
+TypeScript
+// SUBSTITUA A RENDERIZAÇÃO DA ESPECIALIDADE POR:
+<p className="text-sm text-gray-500">{mentor.mentor_specialty || "Mentor Geral"}</p>
+4. ARQUIVO: src/pages/mentor/MentorDashboard.tsx
+Bug A (Erro ao Carregar Alunos): A aba "Meus Alunos" falha e exibe um toast vermelho porque tenta buscar dados individuais inexistentes e quebra a execução.
+
+Ação: Envolva a query de busca de alunos/agendamentos em um bloco try/catch robusto. Se der erro ou vier vazio, defina o estado do array como vazio [] graciosamente e remova o toast de erro impeditivo.
+
+Bug B (Sintaxe Cortada no Final do Arquivo): O código termina abruptamente no meio de uma tag span dentro de TabGrupos.
+
+Substituição (Localize o final do arquivo cortado e complete-o adequadamente):
+
+TypeScript
+// COMPLETE O FINAL DO ARQUIVO FECHANDO AS TAGS E O COMPONENTE CORRETAMENTE:
+<span className="shrink-0 text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 rounded-full">
+  Esgotado
+</span>
+(Certifique-se de fechar todas as </div> restantes de Layout, parênteses do bloco de retorno, a própria função do componente e adicionar o respectivo export default MentorDashboard; no fechamento do arquivo).
+
+Nova Feature (Opção de Criar Mentoria Individual para o Mentor):
+
+Ação: Adicione uma seção ou botão flutuante/modal dentro do MentorDashboard.tsx para permitir que o mentor logado possa definir e disponibilizar seus próprios horários e criar seus agendamentos de mentoria individual diretamente do seu painel, conectando com o serviço correspondente.
+
+Por favor, execute essas modificações, verifique se a tipagem do TypeScript está 100% íntegra e se o projeto compila perfeitamente sem travar. Me avise quando concluir!

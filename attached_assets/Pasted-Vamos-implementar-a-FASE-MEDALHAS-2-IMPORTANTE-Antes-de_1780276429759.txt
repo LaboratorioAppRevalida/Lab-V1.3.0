@@ -1,0 +1,160 @@
+Vamos implementar a FASE MEDALHAS 2.
+
+IMPORTANTE:
+
+Antes de alterar qualquer arquivo:
+
+* auditar dependências
+* preservar comportamento atual
+* não remover sistema legado
+
+OBJETIVO:
+
+Transformar as 12 medalhas atuais em medalhas persistentes no Supabase.
+
+NÃO alterar visual ainda.
+
+NÃO remover ACHIEVEMENTS[].
+
+NÃO remover isAchievementUnlocked().
+
+NÃO quebrar Conquistas.
+
+REQUISITOS
+
+PARTE A — Seed das medalhas
+
+Criar migration:
+
+008_seed_achievements.sql
+
+Inserir as 12 medalhas existentes da constante ACHIEVEMENTS[].
+
+Usar slugs estáveis:
+
+streak-bronze
+streak-prata
+streak-ouro
+streak-platina
+
+stations-bronze
+stations-prata
+stations-ouro
+stations-platina
+
+average-bronze
+average-prata
+average-ouro
+average-platina
+
+Preencher:
+
+title
+description
+tier
+
+required_streak
+required_stations
+required_average
+
+Usar:
+
+INSERT ... ON CONFLICT DO NOTHING
+
+PARTE B — Achievement Engine
+
+Criar:
+
+src/lib/achievementEngine.ts
+
+Funções:
+
+evaluateAndUnlockAchievements()
+
+evaluateLoginAchievements()
+
+Responsabilidades:
+
+* carregar achievements ativos
+* comparar com histórico
+* verificar critérios
+* chamar unlockAchievement()
+
+Sem UI.
+
+Sem toast.
+
+Sem side effects extras.
+
+PARTE C — Integração
+
+Integrar engine:
+
+1. após salvar estação
+
+mesmo fluxo onde já existem:
+
+* evaluateAutomaticTitles()
+* processMissionProgressAfterSession()
+
+2. após loadHistory/login
+
+para avaliar medalhas de streak.
+
+PARTE D — Conquistas
+
+Adicionar leitura de:
+
+fetchUserAchievements(userId)
+
+Mas sem remover:
+
+isAchievementUnlocked()
+
+Estratégia:
+
+Supabase = fonte principal
+
+Fallback = sistema legado
+
+Nenhum usuário pode perder medalhas.
+
+PARTE E — Segurança
+
+NÃO tocar:
+
+* missionProgressEngine
+* titleService
+* eventService
+* multiplayer
+* realtime
+* rankings
+
+NÃO criar loops.
+
+NÃO criar polling.
+
+NÃO adicionar queries em render.
+
+PARTE F — Validação
+
+Executar:
+
+* typecheck
+* runtime check
+
+Confirmar:
+
+* medalhas desbloqueiam automaticamente
+* medalhas persistem entre dispositivos
+* sistema legado continua funcionando
+* zero TypeScript errors
+
+Ao final:
+
+listar:
+
+* migrations criadas
+* arquivos criados
+* arquivos alterados
+* preparação necessária para FASE MEDALHAS 3

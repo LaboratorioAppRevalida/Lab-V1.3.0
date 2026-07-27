@@ -1,0 +1,228 @@
+FASE F — AUDITORIA COMPLETA DE MULTIPLAYER
+OBJETIVO
+
+Auditar integralmente o sistema de multiplayer.
+
+Não corrigir nada.
+
+Não implementar nada.
+
+Não propor melhorias ainda.
+
+Somente mapear o funcionamento real do sistema.
+
+A auditoria deve ser baseada no código existente, banco de dados e fluxos efetivamente implementados.
+
+ETAPA 1 — MAPA GERAL DO MULTIPLAYER
+
+Identificar todos os sistemas relacionados ao multiplayer.
+
+Listar:
+
+criação de sessão
+entrada de participantes (host/guest)
+controle de estado da sessão
+sincronização em tempo real
+timer compartilhado
+checklist compartilhado
+finalização da sessão
+abandono de sessão
+heartbeat / conexão
+qualquer outro mecanismo de interação entre usuários
+
+Resultado esperado:
+
+MAPA COMPLETO DO MULTIPLAYER
+
+com fluxo de dependências entre:
+
+host
+guest
+sessão
+estado
+tempo
+checklist
+ETAPA 2 — CRIAÇÃO DE SESSÃO
+
+Auditar completamente:
+
+multiplayer_sessions (INSERT)
+
+Mapear:
+
+quem pode criar sessão
+como host e guest são definidos
+como checklist é associado
+estado inicial da sessão
+validações existentes (se houver)
+
+Responder:
+
+qualquer usuário pode criar sessão?
+guest pode ser definido livremente?
+existe validação de vínculo entre usuários?
+existe prevenção de sessão inválida?
+
+Mostrar fluxo completo de criação.
+
+ETAPA 3 — CONTROLE DE ESTADO
+
+Auditar campo:
+
+status
+
+Mapear:
+
+quais status existem
+quem pode alterá-los
+quando são alterados
+de onde vêm as alterações (frontend, backend, trigger)
+
+Responder:
+
+existe máquina de estados real?
+ou status é apenas um campo livre?
+host tem autoridade real?
+guest pode alterar estado crítico?
+
+Listar todas as transições possíveis identificadas no código.
+
+ETAPA 4 — TIMER COMPARTILHADO
+
+Auditar:
+
+timer_started_at
+
+Mapear:
+
+quem inicia o timer
+quem pode alterar o timer
+como o tempo é calculado
+se há sincronização entre usuários
+
+Responder:
+
+timer é autoritativo ou local?
+existe risco de desync entre host e guest?
+existe manipulação possível do tempo?
+ETAPA 5 — CHECKLIST COMPARTILHADO
+
+Auditar:
+
+checklist_id dentro da sessão multiplayer
+
+Mapear:
+
+quem define checklist
+quem pode alterar
+se há lock por usuário
+se há conflito entre host e guest
+
+Responder:
+
+checklist pode ser trocado durante sessão?
+existe validação de integridade?
+existe concorrência de updates?
+ETAPA 6 — CONCORRÊNCIA E SINCRONIZAÇÃO
+
+Auditar:
+
+updates simultâneos entre host e guest
+uso de realtime / websocket do Supabase
+conflito de escrita (last write wins)
+consistência entre usuários
+
+Responder:
+
+existe race condition?
+existe conflito de estado?
+sistema resolve inconsistência automaticamente?
+ETAPA 7 — HEARTBEAT E CONEXÃO
+
+Auditar:
+
+mecanismo de presença (online/offline)
+heartbeat da sessão
+disconnect / reconnect
+paused_disconnect
+
+Responder:
+
+sistema detecta desconexão corretamente?
+sessões podem ficar presas em estado inválido?
+existe limpeza automática?
+ETAPA 8 — INTEGRAÇÃO COM GAMIFICAÇÃO
+
+Auditar impacto do multiplayer em:
+
+XP
+níveis
+ranking
+conquistas
+missões
+eventos
+
+Responder:
+
+sessões multiplayer influenciam XP diretamente?
+há risco de XP ser duplicado?
+sessões podem ser manipuladas para farm?
+ETAPA 9 — INTEGRIDADE DE DADOS
+
+Verificar se usuários podem:
+
+alterar status da sessão indevidamente
+encerrar sessão sem permissão
+modificar checklist de outro usuário
+resetar timer
+corromper sessão ativa
+
+Identificar pontos onde isso ocorre.
+
+ETAPA 10 — VETORES DE ATAQUE
+
+Listar possíveis explorações:
+
+host abusando de permissões
+guest sabotando sessão
+race condition de status
+manipulação de tempo
+corrupção de checklist
+finalização indevida de sessão
+inconsistência entre usuários simultâneos
+ETAPA 11 — MODELO REAL DO MULTIPLAYER
+
+Descrever claramente:
+
+o multiplayer é state-driven ou CRUD?
+existe autoridade central?
+existe controle de transição?
+existe consistência entre usuários?
+
+Classificar o modelo atual.
+
+ETAPA 12 — RELATÓRIO FINAL
+
+Classificar problemas em:
+
+🔴 CRÍTICOS
+🟠 ALTOS
+🟡 MÉDIOS
+🟢 BAIXOS
+
+Separar:
+
+Problemas de integridade
+Problemas de concorrência
+Problemas de segurança
+Problemas de lógica
+Problemas de sincronização
+REGRA FINAL
+
+Não sugerir correções.
+
+Não implementar mudanças.
+
+Não reescrever arquitetura.
+
+Somente auditoria e diagnóstico técnico detalhado.

@@ -1,0 +1,30 @@
+SYSTEM INSTRUCTION - THEME PERSONALIZATION SYSTEM (10 PRESETS)
+
+We want to introduce a Branding/Personalization section in the Admin Panel to change the global color scheme of the entire platform (Login page + App Shell) instantly using 10 pre-defined themes.
+
+Please implement this according to the following architecture:
+
+1. THEME DEFINITIONS (CSS Variables or Tailwind Mapping):
+Create a central theme definition supporting 10 distinct preset configurations:
+   • 'gaming': Dark charcoal background, electric cyan, hot pink, and purple neon accents.
+   • 'hospital': Ultra-clean light blue-gray background, bright celestial blue, hospital mint green, and pure white.
+   • 'pronto_socorro': Dark background with alert red, cardiac monitor amber/orange, and lead gray.
+   • 'anatomia': Dark coffee/brown background, muscular crimson, bone white, and gold accents.
+   • 'centro_cirurgico': Deep sterile teal/scrubs background, sharp turquoise, and ice white accents.
+   • 'biohazard': Pitch black background with radioactive lime green and industrial gray.
+   • 'deep_ocean': Extremely deep navy blue background with neon sub-aquatic cyan and blue accents.
+   • 'cyber_gold': Matte black premium background with metallic gold, neon yellow, and amber highlights.
+   • 'cardiology': Midnight dark purple background with pink neon pulse lines and deep red accents.
+   • 'white_coat': Full light-mode. Crisp white background, dark gray text, and traditional medical blue accents.
+
+2. ADMIN INTERFACE (AdminPersonalizacao.tsx):
+   • Inside the Admin area navigation, add a new section/button named "Personalização" (with a Palette or Layout icon).
+   • Render a beautiful grid of the 10 theme options. Each theme should show its name and a small palette preview (circles showing its primary, secondary, and background colors).
+   • Clicking a theme option displays a "Aplicar Tema Globalmente" button.
+   • When applied, persist the selection in a global context or database settings state so it updates the active theme immediately for the app wrapper.
+
+3. APP ROOT INTEGRATION (App.tsx / Login.tsx / Main layouts):
+   • Ensure the root element of the application reads the active theme state and applies the appropriate class (e.g., className="theme-hospital").
+   • Bind the primary background, button colors, and accent glowing shadows to dynamically look up these theme variables so the Login page and the overall app instantly swap their color identities.
+
+Please build the structural state and variables first, ensure everything compiles with zero TypeScript errors, and let me know when the 10 presets are live in the personalization dashboard!

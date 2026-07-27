@@ -1,0 +1,19 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: We have two critical production edge cases to fix regarding connection stability notifications and peer-review submission integrity. Do not bypass existing RLS rules; write patterns that comply with server-side authority.
+
+TASK OVERVIEW:
+1. Fix the notification spam caused by rapid online/offline presence toggling (flapping).
+2. Fix the "Não foi possível enviar a avaliação" submission error at the end of a station.
+
+INSTRUCTIONS FOR THE AGENT:
+1. PRESENCE FLAPPING MITIGATION:
+   • Locate where the Supabase Presence / Realtime connection status changes trigger UI notifications (typically in `src/pages/training/Lobby.tsx`, `src/context/TrainingContext.tsx`, or a custom hook managing connection status).
+   • Implement a "debounce" or stabilization mechanism for status changes. Do not trigger a visual "Usuário desconectou" notification unless the user stays offline for a continuous window of 5 to 8 seconds. This eliminates the rapid multi-popup notification spam per minute.
+
+2. EVALUATION SUBMISSION FIX:
+   • Locate the "Enviar Avaliação" component or function triggered when completing a station and reviewing a peer (typically `src/components/training/RatingCard.tsx`, `src/pages/training/Estacao.tsx`, or inside `ratingService.ts`).
+   • Inspect why the submission fails. It is likely attempting a direct client-side `supabase.from().insert/update` on a table locked by our recent RLS security migrations.
+   • Refactor the submission flow to safely route the stars and feedback through the official server-side RPC (such as `fn_submit_and_calculate_osce_grade` or the appropriate secure rating handler inside `ratingService.ts`). Ensure it passes variables matching the backend requirements.
+   • Catch any backend validation errors cleanly and make sure the loading state dismisses successfully upon a successful RPC completion.
+
+OUTPUT REQUIRED:
+Confirm the implementation of the notification debounce threshold. Identify which service/component was refactored from direct table mutation to secure RPC execution to unblock rating submissions.

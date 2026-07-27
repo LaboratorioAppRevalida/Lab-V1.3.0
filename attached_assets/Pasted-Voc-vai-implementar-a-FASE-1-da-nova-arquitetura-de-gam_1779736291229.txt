@@ -1,0 +1,274 @@
+Você vai implementar a FASE 1 da nova arquitetura de gamificação persistente da plataforma Revalida.
+
+OBJETIVO PRINCIPAL
+Criar persistência REAL de progresso de missões no Supabase sem quebrar absolutamente nada do sistema atual.
+
+IMPORTANTE
+NÃO remover:
+
+* gamificationStorage.ts
+* MISSIONS[]
+* lógica atual de XP
+* lógica atual de claim
+* lógica atual de níveis
+* sistema de títulos
+* sistema de sessões
+* realtime
+* rankings
+* multiplayer
+
+A implementação deve ser:
+
+* incremental
+* compatível com o sistema atual
+* segura
+* sem regressões
+
+====================================================================
+FASE 1 — O QUE DEVE SER IMPLEMENTADO
+====================================
+
+1. Criar tabela:
+   public.user_mission_progress
+
+2. Criar:
+   src/lib/missionProgressService.ts
+
+3. Fazer Conquistas.tsx usar progresso persistido do banco.
+
+4. Manter fallback completo para localStorage.
+
+5. NÃO implementar ainda:
+
+* conditions jsonb
+* missões compostas
+* eventos avançados
+* motor de regras complexo
+* auto reward avançado
+
+====================================================================
+PARTE 1 — SQL
+=============
+
+Gerar SQL idempotente completo para:
+
+CREATE TABLE IF NOT EXISTS public.user_mission_progress (
+id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+user_id uuid NOT NULL
+REFERENCES public.profiles(id)
+ON DELETE CASCADE,
+
+mission_id uuid NOT NULL
+REFERENCES public.missions(id)
+ON DELETE CASCADE,
+
+progress integer NOT NULL DEFAULT 0,
+target integer NOT NULL DEFAULT 1,
+
+completed boolean NOT NULL DEFAULT false,
+claimed boolean NOT NULL DEFAULT false,
+
+completed_at timestamptz,
+claimed_at timestamptz,
+
+created_at timestamptz NOT NULL DEFAULT now(),
+updated_at timestamptz NOT NULL DEFAULT now(),
+
+UNIQUE(user_id, mission_id)
+);
+
+Adicionar:
+
+* trigger updated_at
+* RLS
+* policies
+
+Policies:
+
+* usuário vê apenas os seus
+* usuário pode atualizar apenas os seus
+* admin vê tudo
+
+====================================================================
+PARTE 2 — SERVICE CENTRALIZADO
+==============================
+
+Criar:
+src/lib/missionProgressService.ts
+
+Funções obrigatórias:
+
+1. fetchUserMissionProgress(userId)
+
+Retorna:
+Map<missionId, progressData>
+
+2. upsertMissionProgress()
+
+Atualiza:
+
+* progress
+* completed
+* timestamps
+
+3. claimMissionReward()
+
+Marca:
+claimed=true
+
+4. syncLegacyMissionProgress()
+
+Migra localStorage → Supabase
+SEM apagar localStorage ainda
+
+====================================================================
+PARTE 3 — CONQUISTAS.TSX
+========================
+
+Migrar cuidadosamente.
+
+OBJETIVO:
+A tela deve:
+
+1. carregar missões do Supabase
+2. carregar progresso persistido do Supabase
+3. manter fallback legado
+
+====================================================================
+REGRAS IMPORTANTES
+==================
+
+NÃO quebrar:
+
+* render atual
+* cards
+* claim button
+* progresso visual
+* categorias
+* loading
+* skeletons
+
+====================================================================
+COMPORTAMENTO
+=============
+
+Se Supabase funcionar:
+→ usar progresso persistido
+
+Se Supabase falhar:
+→ usar sistema legado atual
+
+====================================================================
+PARTE 4 — CLAIM
+===============
+
+Hoje o claim provavelmente usa:
+
+* localStorage
+* estado local
+
+MIGRAR COM SEGURANÇA:
+
+Novo fluxo:
+
+* claimMissionReward()
+* depois atualizar UI local
+
+MAS:
+
+* manter fallback legado
+
+====================================================================
+PARTE 5 — COMPATIBILIDADE TOTAL
+===============================
+
+NÃO remover:
+
+* MISSIONS[]
+* gamificationStorage.ts
+* funções legadas
+
+Elas devem continuar:
+
+* funcionando
+* compilando
+* servindo como fallback
+
+====================================================================
+PARTE 6 — SEGURANÇA
+===================
+
+IMPORTANTE:
+NÃO tocar:
+
+* multiplayer
+* realtime
+* timers
+* uploads
+* auth
+* sessions
+* rankings
+* storageService
+* news
+* resumos
+* checklist system
+
+====================================================================
+PARTE 7 — TYPE SAFETY
+=====================
+
+Garantir:
+
+* zero TypeScript errors
+* sem any desnecessário
+* interfaces claras
+* tipagem consistente
+
+====================================================================
+PARTE 8 — RESULTADO ESPERADO
+============================
+
+Após implementação:
+
+1. usuário faz progresso em missão
+2. progresso persiste no Supabase
+3. usuário troca de dispositivo
+4. progresso continua lá
+
+Sem quebrar:
+
+* sistema atual
+* claims
+* XP
+* níveis
+
+====================================================================
+IMPORTANTE
+==========
+
+NÃO tentar implementar:
+
+* conditions
+* rules engine
+* missions compostas
+
+NESTA FASE.
+
+Apenas:
+
+* fundação persistente
+* compatibilidade total
+* migração segura
+
+====================================================================
+ENTREGA ESPERADA
+================
+
+1. SQL completo
+2. Novos arquivos criados
+3. Arquivos alterados
+4. Explicação técnica
+5. Garantias de compatibilidade
+6. Resultado do typecheck
+7. Verificação de runtime

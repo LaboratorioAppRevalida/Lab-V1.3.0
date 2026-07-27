@@ -1,0 +1,40 @@
+Atue como um Engenheiro de Front-end Especialista em React e Tailwind CSS. Sua tarefa é reestruturar e estilizar completamente o nosso sistema de Chat (composto por um container principal e abas para chat público e privado), tornando-o o mais fiel possível à imagem de referência fornecida, mas aplicando modificações específicas de regras de negócio.
+
+A interface deve adotar uma estética "Liquid Glass Premium" (transparências elegantes, desfoques de fundo, bordas finas simulando vidro e cantos arredondados generosos), totalmente responsiva e perfeitamente adaptável tanto ao Tema Claro quanto ao Tema Escuro utilizando as classes utilitárias do Tailwind.
+
+### ── IDIOMA E LOCALIZAÇÃO ──
+1. Todo e qualquer texto fixo, rótulo, placeholder, estados vazios ou dicas de interface (tooltips) DEVEM ser estritamente em Português (pt-BR).
+
+### ── ESTRUTURA E LAYOUT LATERAL (SIDEBAR DE MENSAGENS) ──
+Baseado no layout de duas colunas da imagem de referência, monte o painel esquerdo seguindo esta hierarquia exata de cima para baixo:
+1. **Cabeçalho:** O título principal deve ser "Mensagens" (substituindo o termo em inglês). Remova completamente o botão ou opção "Add Contact" (Adicionar Contato) que existe na referência.
+2. **Barra de Pesquisa (Nova Funcionalidade):** Logo abaixo do título "Mensagens", adicione uma barra de pesquisa persistente com um ícone de lupa sutil. O placeholder deve ser "Procurar usuário...". Esta barra deve permitir filtrar/buscar o nome de qualquer usuário da plataforma para que o usuário possa clicar e iniciar uma nova conversa privada.
+3. **Chat Público Fixado (Regra Crítica):** Imediatamente abaixo da barra de pesquisa e ACIMA de todas as outras conversas privadas, o "Chat Público" deve ficar permanentemente fixado no topo da lista. Ele deve ter um destaque visual elegante (por exemplo, um ícone de Globo ou canal, indicação de mensagens ativas e um rótulo claro "Chat Público"). Ele não sai do topo nunca.
+4. **Lista de Conversas Privadas:** Abaixo do Chat Público, renderize a lista de contatos/conversas privadas com scroll vertical isolado. Cada item deve exibir:
+   - O Avatar perfeitamente circular do usuário com uma borda sutil.
+   - Um indicador de status visual pulsante (Online, Em Sessão, Ocupado, Offline) posicionado no canto inferior direito do avatar.
+   - Nome do usuário em negrito.
+   - Um trecho da última mensagem ou status de presença e o contador de mensagens não lidas em um badge circular vibrante.
+
+### ── JANELA DE CONVERSA ATIVA (ÁREA CENTRAL/DIREITA) ──
+Quando uma conversa (pública ou privada) estiver selecionada, o painel da direita deve refletir a fidelidade da imagem:
+1. **Cabeçalho do Chat:** Exibe o avatar do contato, nome, status atualizado e um botão de retrocesso (Chevron) visível apenas em telas menores (mobile) para fechar a conversa e voltar para a lista.
+2. **Restrição Absoluta de Funcionalidades (Apenas Texto):** Remova ou NÃO inclua nenhum ícone, botão ou menu relacionado a:
+   - Chamadas de vídeo ou chamadas de áudio no cabeçalho.
+   - Envio de mídia, upload de imagens, anexos ou gravação de áudio no rodapé.
+   O nosso chat é PURAMENTE TEXTO.
+3. **Área de Mensagens:**
+   - Fluxo de scroll automático para a última mensagem.
+   - **Mensagens do Usuário Atual (Direita):** Balões com fundo em gradiente moderno (ex: de violeta para índigo), texto branco, cantos arredondados generosos (`rounded-2xl`), com o canto inferior direito quadrado (`rounded-br-none`).
+   - **Mensagens Recebidas (Esquerda):** Balões no estilo glassmorphism (`bg-white/80` no tema claro, `bg-slate-900/60` no tema escuro, `backdrop-blur-md`), bordas finas lineares, cantos arredondados com o canto inferior esquerdo quadrado (`rounded-bl-none`). No Chat Público, o nome do remetente deve aparecer logo acima do balão em uma tipografia pequena e elegante.
+4. **Caixa de Entrada (Rodapé):**
+   - Um campo de texto estilo `textarea` com cantos bem arredondados (`rounded-2xl`), fundo sutil, que expande verticalmente conforme o usuário digita (respeitando uma altura máxima). O placeholder deve ser "Mensagem pública..." ou "Mensagem privada...", dependendo do contexto.
+   - À direita da caixa, um único botão de envio circular ou no formato `rounded-2xl` contendo apenas o ícone de envio (Send/Papagaio de papel). O botão deve ganhar cor vibrante e efeito de hover apenas quando houver texto digitado.
+
+### ── DIRETRIZES DE ESTILO (THEME & UI/UX) ──
+- **Tema Escuro:** Use fundos profundos como `bg-slate-950` ou `bg-black`, aplicando desfoques de vidro com opacidades baixas (`bg-white/5` ou `bg-slate-900/40 backdrop-blur-md`) nas divisórias e painéis para criar profundidade. Bordas em `border-white/5` ou `border-slate-800`.
+- **Tema Claro:** Substitua os fundos escuros por superfícies suaves de cinza/azul claro, usando opacidades de vidro como `bg-white/60 backdrop-blur-md` e bordas finas em `border-slate-200/60`.
+- As barras de rolagem (scrollbars) devem ser finas (`scrollbar-thin`) e discretas para não quebrar o minimalismo da interface.
+- Garanta que a transição de estados de clique entre os contatos na barra lateral seja suave e use estados ativos com gradientes suaves de opacidade de fundo para marcar onde o usuário está navegando.
+
+Mantenha a lógica de estados e a integração com o Supabase já existentes no nosso código atual, alterando estritamente a casca visual (JSX/Tailwind) para atingir essa fidelidade impecável da interface de referência.

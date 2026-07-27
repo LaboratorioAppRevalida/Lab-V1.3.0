@@ -1,0 +1,27 @@
+SYSTEM INSTRUCTION - PAINEL ADMIN DE ASSINATURAS (PARTE 2/2):
+Incredible work on the liquid crystal design for the plans showcase! Let's now build the second part: the Subscription Management interface for administrators.
+
+Please decline the WhatsApp/lead form wiring for now and focus strictly on this admin structure:
+
+1. ADMIN INTERACTION (Botão Gerenciar Planos):
+   • Inside the existing AdminPersonalizacao or main Admin interface, add a prominent, clean button labeled "Gerenciar Planos" or "Gerenciar Assinaturas" using the layout's native button guidelines.
+   • Clicking this button should render a dedicated view or a beautifully styled slide-over/modal management panel.
+
+2. USER SUBSCRIPTION LIST & SEARCH:
+   • Create a clean table or list that fetches and displays users alongside their subscription status.
+   • Include columns/fields for: Usuário (Name/Email), Plano Atual (Mensal, Semestral, Anual, Passaporte, or "Nenhum"), Status Badge (Ativo, Pendente, Expirado, Cancelado), and Data de Expiração.
+   • Add a simple search bar to filter users by name or email.
+
+3. MANAGEMENT & EDITING ACTIONS:
+   • Clicking on a user from this admin list must allow the admin to manually modify or assign a subscription.
+   • The admin should be able to: 
+     - Change the user's Plan (Dropdown: Mensal, Semestral, Anual, Passaporte, Nenhum).
+     - Toggle the Status (Dropdown: Ativo, Pendente, Expirado, Cancelado).
+     - Set or change the Expiration Date (using a clean native calendar inputs/datepicker).
+   • Saving these changes must execute an upsert/update query directly on the `public.subscriptions` table (which we created in migration 032) for that specific `user_id`.
+
+4. SAFETY & FEEDBACK:
+   • Ensure this view is strictly protected by the `is_admin = true` check (leveraging your existing admin RLS or context guards).
+   • Show success/error toast notifications when an admin manually updates an access level.
+
+Ensure clean TypeScript typing, smooth interactions, and verify that the whole project compiles with zero build errors.

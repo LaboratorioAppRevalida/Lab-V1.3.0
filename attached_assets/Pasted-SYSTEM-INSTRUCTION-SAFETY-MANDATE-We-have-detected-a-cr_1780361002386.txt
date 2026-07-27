@@ -1,0 +1,19 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: We have detected a critical multi-system bug where the training session lifecycle state is not being properly cleared upon station completion. This causes three compounding issues: stale activeSessionId overwriting database reviews, user presence status stuck in "In Session/Ocupado" until hard refresh, and the doctor component rendering blank until a hard refresh triggers the hydration flow.
+
+TASK OVERVIEW:
+Implement a robust state reset mechanism during session termination and properly sequence the initialization for the doctor's view to eliminate the need for manual page refreshes.
+
+INSTRUCTIONS FOR THE AGENT:
+1. SESSION LIFECYCLE CLEANUP (Status & Rating Overwrite Fix):
+   • Locate the exit/cleanup logic inside `src/context/TrainingContext.tsx` or the function called when leaving a finished station (e.g., `endSession`, `leaveSession`, or `resetTrainingState`).
+   • Ensure that upon completing a match and returning to the lobby, the context explicitly resets `activeSessionId` to `null`, clears cached room tokens, and broadcasts an updated Supabase Presence state forcing the user status back to 'online'. This will fix both the stuck status and stop sequential ratings from overwriting the same session record.
+
+2. DOCTOR VIEW RENDER INITIALIZATION (Blank Screen Fix):
+   • Inspect why the doctor's view in `src/pages/training/Estacao.tsx` requires a page refresh to render content during a fresh session start.
+   • Ensure that when a session successfully moves to the running state, `hydrateStation()` is triggered reactively based on the newly set session state/checklistId inside an effect, rather than relying strictly on the session restore code paths. The layout must mount cleanly without forcing the client to reload the window.
+
+3. CROSS-CHECK PAYLOAD INDEPENDENCE:
+   • Ensure that when a subsequent game session starts, a brand new `multiplayer_sessions` row is verified, ensuring a unique UUID flows into the `RatingCard` submission payload.
+
+OUTPUT REQUIRED:
+Confirm the implementation of the explicit session state cleanup function. Verify that the doctor's screen now mounts visually on the first try without a manual refresh, and status transitions instantly reflect in the lobby.

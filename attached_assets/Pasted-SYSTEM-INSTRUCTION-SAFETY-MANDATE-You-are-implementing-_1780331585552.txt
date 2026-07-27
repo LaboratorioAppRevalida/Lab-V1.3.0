@@ -1,0 +1,17 @@
+SYSTEM INSTRUCTION & SAFETY MANDATE: You are implementing critical LGPD privacy protections on the 'profiles' table. Do not break login flows, the admin panel, or the ranking screen. Maintain absolute backward compatibility for columns required publicly.
+
+TASK OVERVIEW:
+Harden the SELECT Row-Level Security (RLS) policy for the 'profiles' table. Currently, any authenticated user can read all columns of all other users, exposing sensitive data (email, phone, birth_date, is_suspended) which violates data privacy regulations.
+
+INSTRUCTIONS FOR THE AGENT:
+1. Inspect the current SELECT RLS policies for the 'profiles' table (e.g., 'profiles_select_authenticated' or 'Enable read access for all').
+2. Create a clean, production-ready PostgreSQL migration script (SQL) to drop the old permissive SELECT policy.
+3. Design a split-security architecture using a database View or a conditional RLS policy. The mandate is:
+   - A user can always view 100% of their own row data (`auth.uid() = id`).
+   - An Administrator (`public.is_admin_check()`) can view 100% of all rows to manage the platform.
+   - A non-admin authenticated user looking at ANOTHER user's profile can ONLY read safe public columns: `id`, `name`, `display_name`, `nivel`, `avatar_url`, `avg_rating`, and `rating_count`. Sensitive columns (`email`, `phone`, `birth_date`, `is_suspended`, `suspended_until`, `suspension_reason`) must return NULL or be entirely inaccessible for third-party rows.
+4. If your current architecture uses a direct `select(*)` on profiles for features like the Ranking or Multiplayer lobbies, the best approach is to modify the RLS SELECT policy to allow reading the row BUT use a Postgres trigger or an RLS structure that blanks out the fields, OR guide the user to use a Public Profile View. (Choose the cleanest method that doesn't break the existing code, preferably a single RLS policy with CASE conditions if supported, or a standard safe policy paired with an update to public queries).
+5. Save this migration as `supabase/migrations/012_secure_profiles_select_rls.sql`.
+
+OUTPUT REQUIRED:
+Provide the full, production-ready SQL script. Explain clearly how it protects doctor privacy during the live June tests while keeping the Ranking and Lobbies working.

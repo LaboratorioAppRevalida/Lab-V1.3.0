@@ -1,0 +1,21 @@
+Please overhaul the styling of `src/pages/admin/AdminMentorias.tsx` to fully support both Light Mode and Dark Mode with clean text contrast, and remove overlapping borders/grids as seen in the recent UI screenshots. 
+
+Currently, many background and text colors are hardcoded for a dark preview (e.g., bg-white/5, border-cyan-400/20, text-cyan-200/40), which completely washes out in light mode and creates cluttered double borders in dark mode.
+
+Please apply the following strict refactoring guidelines:
+
+1. Update Shared Form Styles:
+- Change `inputCls` to: "w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 focus:border-cyan-500 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 outline-none transition-colors"
+- Change `labelCls` to: "block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5"
+
+2. Fix the Top Tab Navigation Buttons:
+- Locate the main tab navigation mapping loop and update the active/inactive dynamic class string to:
+`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === key ? "bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 shadow-sm" : "text-slate-500 dark:text-cyan-200/40 hover:text-slate-800 dark:hover:text-cyan-200/70"}`
+
+3. Clean Up Grid Lists and Session Cards (Fix Overlapping Lines):
+- Ensure all list containers and grid parent wrappers use transparent or dynamic borders, avoiding stacking multiple border layers.
+- Change the individual session/mentor card wrapper divs across all sub-tabs (MentorManagement, SlotScheduler, GroupScheduler, ParticipantManager) to look clean in both themes:
+  `bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm flex flex-col gap-4`
+- Make sure all card titles and headers explicitly use standard text colors instead of implicit dark mode styles: `text-lg font-bold text-slate-900 dark:text-white`
+
+Please execute these changes carefully across the components inside `AdminMentorias.tsx`, make sure the TypeScript types remain completely untouched and valid, and let me know once it compiles successfully!

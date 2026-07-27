@@ -1,0 +1,31 @@
+SYSTEM INSTRUCTION - MENTORSHIP MARKETPLACE PLATFORM (MVP WITH STAR RATING)
+
+We are launching a new strategic feature: a Mentorship Marketplace within our platform where revalidated doctors (Mentors) can list their availability, and students can book individual or group slots. All conversion flows redirect to our sales team via WhatsApp.
+
+Please implement this system across the database, services, and UI following these specifications:
+
+1. PHASE 1: DATABASE MIGRATION (035_mentorship_system.sql)
+Create a migration file with the following database adjustments:
+   • ALTER TABLE profiles: Add 'is_mentor' (boolean, default false), 'mentor_bio' (text), 'mentor_specialty' (text), and 'mentor_avatar_url' (text).
+   • TABLE 'mentorship_slots' (Individual): id (uuid), mentor_id (FK->profiles), start_time (timestamptz), end_time (timestamptz), status (text, default 'available').
+   • TABLE 'group_mentorships' (Collective): id (uuid), mentor_id (FK->profiles), title (text), description (text), start_time (timestamptz), end_time (timestamptz), max_capacity (int), current_bookings (int, default 0).
+   • TABLE 'mentor_reviews': id (uuid), mentor_id (FK->profiles), student_id (FK->profiles), rating (int, 1 to 5), comment (text), created_at (timestamptz). Add a unique constraint on (mentor_id, student_id) so a student can only review a mentor once.
+
+2. PHASE 2: SERVICE LAYER (mentorshipService.ts)
+Create a new service layer to handle the following operations:
+   • listMentorsWithRatings(): Fetches all profiles where 'is_mentor = true', alongside their average star rating and total review count.
+   • getMentorAvailability(mentorId): Fetches 'available' slots for a specific mentor.
+   • listGroupMentorships(): Fetches all upcoming group sessions with vacancy counts (current_bookings / max_capacity).
+   • submitMentorReview(mentorId, rating, comment): Allows a student to post a 1-5 star review.
+
+3. PHASE 3: MAIN USER DASHBOARD LINK (Inicio.tsx)
+   • Add a new card to the student dashboard action grid titled "Mentorias" with a clear subtitle "Agende com especialistas" and an icon (e.g., Users or Calendar). This card must be visible to ALL authenticated students and route them to '/mentorias'.
+
+4. PHASE 4: THE MENTORSHIP INTERFACE (Mentorias.tsx)
+Create a beautifully designed cyberpunk interface at '/mentorias' containing two tabs:
+   • TAB 1 (Individual Mentorships): Displays cards of available Mentors. Each card shows their name, specialty, short bio, and their Star Rating (e.g., "⭐ 4.9 (24 avaliações)"). Clicking a mentor opens a Modal showcasing their calendar slots. Clicking an available slot opens a WhatsApp redirection link to our sales team:
+     "https://wa.me/YOUR_SALES_NUMBER?text=Olá! Gostaria de agendar uma mentoria individual com o Dr. [Nome] no dia [Data] às [Hora]."
+   • TAB 2 (Group Mentorships): Displays a list of scheduled group sessions showing title, mentor name, description, date/time, and a vacancy progress bar ("Vagas: 4 / 10"). Clicking "Garantir Vaga" triggers a WhatsApp link:
+     "https://wa.me/YOUR_SALES_NUMBER?text=Olá! Quero garantir minha vaga na Mentoria em Grupo: [Título] com o Dr. [Nome]."
+
+Please implement the backend structures first, wire the services, and build the UI components cleanly with zero TypeScript errors. Let me know when the system is live!

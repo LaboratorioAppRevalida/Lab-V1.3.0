@@ -1,0 +1,89 @@
+Markdown
+# TASK: Implementação do Painel do Mentor (Dashboard), Rota Protegida, Integração de UI/UX e Correção de Exclusão de Grupos
+
+## 🎯 OBJETIVO GERAL
+Desenvolver um ecossistema completo de gerenciamento no frontend para usuários que possuem a flag `is_mentor: true` na tabela `profiles` do Supabase. O mentor deve ganhar autonomia para atualizar seu perfil, gerenciar sua agenda (vagas livres vs. ocupadas), acompanhar o progresso de suas mentorias e criar/deletar seus slots/grupos. Todo o desenvolvimento deve respeitar a identidade visual premium existente, garantindo suporte perfeito e contraste rigoroso tanto no Tema Claro quanto no Tema Escuro.
+
+---
+
+## 🚫 DIRETRIZES CRÍTICAS DE SEGURANÇA & INTEGRIDADE (NÃO QUEBRAR NADA)
+1. **Preservação de Código:** NÃO altere, remova ou comente regras de negócio nos arquivos de autenticação (`AuthContext`) ou funções existentes de banco de dados.
+2. **Reuso Obrigatório do Serviço:** Utilize estritamente as funções que já estão prontas e declaradas no arquivo `src/lib/mentorshipService.ts` (`updateMentorProfile`, `createIndividualSlot`, `createGroupMentorship`, `deleteIndividualSlot`, `deleteGroupMentorship`, etc.).
+3. **Respeito ao RLS do Supabase:** As tabelas possuem políticas de Row Level Security (RLS) ativa. Qualquer tentativa de salvar ou modificar um dado usando um ID que não seja o do usuário logado (`auth.uid()`) falhará nativamente. O frontend deve travar o `mentor_id` como o ID do usuário logado implicitamente.
+
+---
+
+## 🛠️ CRONOGRAMA DETALHADO DA IMPLEMENTAÇÃO (PASSO A PASSO)
+
+### 📍 PASSO 1: Inserção do Ponto de Entrada na Home / Dashboard Principal
+1. Localize o componente que renderiza a página inicial (Home/Dashboard do aluno).
+2. Identifique onde está a regra que renderiza condicionalmente o botão de "Colaborador" (utilizado para a criação de checklists).
+3. Crie uma estrutura idêntica baseada no contexto de autenticação para o mentor:
+   ```tsx
+   {user?.is_mentor && (
+     // Renderizar o botão premium aqui
+   )}
+Especificações do Botão: Deve utilizar um gradiente moderno (ex: from-cyan-600 to-blue-600 ou alinhado à paleta de botões principais do app), exibir o texto "Painel do Mentor", usar um ícone adequado da biblioteca Lucide (como UserCheck, Briefcase ou ShieldCheck) e disparar o redirecionamento para a rota /mentor/painel.
+
+📍 PASSO 2: Criação da Rota Protegida e Middleware de Segurança
+Vá até o arquivo centralizador de rotas da aplicação (geralmente src/App.tsx, src/routes.tsx ou similar).
+
+Declare a nova rota /mentor/painel.
+
+Implemente uma barreira de proteção (Guard/Route Protection): Se o usuário tentar acessar a URL diretamente e não estiver autenticado OU se o objeto user.is_mentor for falso/falsy, intercepte a requisição e faça um redirecionamento imediato para a página raiz (/), impedindo a exposição de componentes internos.
+
+📍 PASSO 3: Desenvolvimento da Página do Painel (src/pages/mentor/MentorDashboard.tsx)
+Crie uma página modular utilizando o ecossistema Tailwind CSS e Framer Motion (se já utilizado no projeto para transições de abas). A página deve conter:
+
+🖼️ 3.1. Cabeçalho (Header)
+Título principal em destaque: "Painel do Mentor" aplicando o gradiente de texto padrão do app (bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-cyan-300 bg-clip-text text-transparent).
+
+Descrição curta: "Gerencie suas disponibilidades, atualize suas especialidades e acompanhe seus alunos."
+
+📑 3.2. Sistema de Abas (Tabs) para Divisão de Contexto
+Crie três abas de navegação interna:
+
+Aba 1: Meu Perfil de Mentor (Formulário de Dados)
+
+Renderize dois campos principais conectados ao estado local: um Input para mentor_specialty (Especialidade) e um Textarea robusto para mentor_bio (Biografia do Mentor).
+
+Insira um botão "Salvar Perfil". Ao ser clicado, deve invocar a função updateMentorProfile(user.id, { mentor_bio, mentor_specialty }), exibindo um feedback visual de sucesso (toast.success).
+
+Aba 2: Minha Agenda (Slots Individuais)
+
+Ao carregar a aba, busque os slots de mentoria individual. Filtre os resultados para exibir apenas os registros pertencentes ao mentor logado (slot.mentor_id === user.id).
+
+Divida a visualização em duas colunas ou sub-blocos simétricos:
+
+Horários Disponíveis: Exibe os cartões com status === 'available'. Cada cartão deve conter um botão com o ícone de lixeira (Trash2) que dispara a função deleteIndividualSlot(slotId) para exclusão imediata.
+
+Horários Agendados: Exibe os cartões com status === 'booked', mostrando de forma clara quais horários já foram reservados por alunos (deixando o botão de exclusão desativado ou oculto para segurança do agendamento).
+
+Aba 3: Mentorias Coletivas (Grupos & Temas)
+
+Liste todas as mentorias em grupo criadas por este mentor (group.mentor_id === user.id).
+
+Exiba cartões horizontais organizados contendo: Título do tema, Descrição da sessão, Data/Hora formatada e uma barra de progresso visual mostrando a ocupação das vagas baseado nos campos current_bookings e max_capacity (ex: "4 / 10 Vagas Preenchidas").
+
+➕ 3.3. Botões de Ação de Criação Integrados
+No topo do Dashboard ou na aba correspondente, adicione botões claros para "Adicionar Horário Individual" e "Criar Mentoria em Grupo".
+
+Esses botões devem abrir modais internos estilizados ou reaproveitar a lógica de formulários que você encontrar no arquivo src/pages/admin/AdminMentorias.tsx.
+
+Ao submeter a criação, garanta que o payload envie o mentor_id extraído diretamente de user.id do contexto, sem permitir os usuários escolherem manualmente outros IDs.
+
+🛠️ PASSO 4: AJUSTE CRÍTICO DE CONSISTÊNCIA (EXCLUSÃO DE MENTORIAS EM GRUPO)
+Identificamos que a função de exclusão de mentorias em grupo está ausente visualmente no frontend, embora exista no backend através da tabela group_mentorships.
+
+No Painel do Mentor (Aba 3 recém-criada): Adicione um botão ou ícone de lixeira (Trash2) em cada card de mentoria em grupo que o mentor visualizar. Esse botão deve invocar a função deleteGroupMentorship(groupId) do arquivo de serviços, seguido por um toast.success e uma atualização de estado para remover o item da tela.
+
+No Painel do Administrador (src/pages/admin/AdminMentorias.tsx): Localize a listagem onde as mentorias em grupo globais da plataforma são exibidas. Certifique-se de expor ou corrigir o botão de exclusão que dispara a mesma função deleteGroupMentorship(groupId), garantindo que o Admin também possa gerenciar e expurgar sessões obsoletas diretamente pela interface.
+
+🎨 DIRETRIZES ESTÉTICAS EXIGIDAS (UI/UX PREMIUM)
+Design de Superfícies: Use cartões contendo bordas ultra sutis (border border-slate-200 dark:border-white/5), cantos arredondados generosos (rounded-3xl) e fundo com efeito glassmorphism (bg-white dark:bg-slate-900/30 backdrop-blur-md).
+
+Contraste de Tipografia: Certifique-se de que nenhum texto fique ilegível no tema claro. Use classes explícitas como text-slate-900 dark:text-white para títulos e text-slate-600 dark:text-slate-300 ou dark:text-cyan-200/50 para textos secundários e legendas.
+
+Feedbacks: Toda ação assíncrona (salvar, deletar, criar) deve exibir estados de loading (spinners ou esqueletos) e notificações via toast.
+
+Proceda com as modificações arquivo por arquivo. Certifique-se de validar se o build continua passando a cada etapa concluída.

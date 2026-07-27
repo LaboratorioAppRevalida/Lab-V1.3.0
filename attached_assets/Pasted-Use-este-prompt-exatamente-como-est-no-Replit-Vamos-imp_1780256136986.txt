@@ -1,0 +1,294 @@
+Use este prompt exatamente como está no Replit:
+
+---
+
+Vamos implementar a **FASE EVENTOS 1A — Infraestrutura Visual de Eventos**, com foco apenas em UI, navegação e leitura de dados.
+
+IMPORTANTE:
+
+NÃO alterar:
+
+* missionProgressEngine
+* titleService
+* TrainingContext
+* multiplayer
+* realtime
+* rankings
+* auth
+* sessions
+* mission progress
+* gamification engine
+
+NÃO recalcular progresso de missões.
+
+NÃO criar lógica de recompensas automáticas.
+
+NÃO alterar tabelas existentes.
+
+NÃO criar migrations novas.
+
+Objetivo:
+
+Construir a primeira versão visual do sistema de eventos utilizando exclusivamente as tabelas já existentes:
+
+* events
+* event_missions
+* event_rewards
+
+---
+
+FASE A — Card de Evento Ativo
+
+Na página:
+
+src/pages/Conquistas.tsx
+
+Adicionar no topo da página um bloco:
+
+🎉 Evento Ativo
+
+Exibir:
+
+* nome
+* descrição curta
+* banner (se existir)
+* data de término
+* contador regressivo
+* quantidade total de missões do evento
+* quantidade total de recompensas
+
+Botão:
+
+"Ver Evento"
+
+---
+
+Comportamento:
+
+Buscar apenas:
+
+events
+
+onde:
+
+is_active = true
+
+e
+
+starts_at <= now()
+
+e
+
+(ends_at IS NULL OR ends_at >= now())
+
+Selecionar apenas o primeiro evento ativo.
+
+Se não houver evento ativo:
+
+NÃO mostrar card vazio.
+
+Apenas não renderizar a seção.
+
+---
+
+FASE B — Service isolado
+
+Criar:
+
+src/lib/eventService.ts
+
+Funções:
+
+fetchActiveEvent()
+
+fetchEventById(eventId)
+
+fetchEventMissions(eventId)
+
+fetchEventRewards(eventId)
+
+IMPORTANTE:
+
+Somente leitura.
+
+Nenhuma escrita.
+
+Nenhuma lógica de progresso.
+
+Nenhum cálculo.
+
+Nenhuma alteração de estado global.
+
+---
+
+FASE C — Countdown
+
+Criar helper:
+
+src/lib/eventCountdown.ts
+
+Função:
+
+getRemainingTime(endDate)
+
+Retornar:
+
+dias
+horas
+minutos
+
+Formato amigável:
+
+"3 dias"
+"12 horas"
+"45 min"
+
+Atualização:
+
+1x por minuto no máximo.
+
+NÃO criar timers agressivos.
+
+NÃO gerar re-render contínuo.
+
+---
+
+FASE D — Página do Evento
+
+Criar nova página:
+
+src/pages/EventoDetalhes.tsx
+
+Rota:
+
+/conquistas/evento/:id
+
+Layout:
+
+Banner
+
+Nome
+
+Descrição
+
+Período do evento
+
+Contagem regressiva
+
+---
+
+Seção:
+
+Missões do Evento
+
+Listar todas as missões vinculadas via:
+
+event_missions
+
+Mostrar:
+
+* nome
+* descrição
+* XP
+* raridade
+
+NÃO mostrar progresso ainda.
+
+---
+
+Seção:
+
+Recompensas
+
+Listar:
+
+event_rewards
+
+Mostrar:
+
+* tipo
+* valor
+* título associado (se existir)
+
+NÃO mostrar desbloqueio.
+
+NÃO mostrar claim.
+
+---
+
+FASE E — Navegação
+
+Botão:
+
+"Ver Evento"
+
+no card da página Conquistas
+
+deve navegar para:
+
+/conquistas/evento/:id
+
+Utilizar o padrão de navegação já existente no projeto.
+
+---
+
+FASE F — UX
+
+Manter o visual atual da plataforma.
+
+Responsivo.
+
+Mobile friendly.
+
+Tema consistente.
+
+Se existir banner:
+
+mostrar com bordas arredondadas.
+
+Se não existir banner:
+
+usar placeholder elegante.
+
+---
+
+FASE G — Segurança
+
+Garantir:
+
+* zero alterações em sistemas existentes
+* zero loops infinitos
+* zero memory leaks
+* zero alterações em multiplayer
+* zero alterações em sessões
+* zero alterações em gamificação
+* zero alterações em títulos
+* zero alterações em ranking
+* zero alterações em auth
+
+---
+
+Ao finalizar:
+
+1. Rodar typecheck.
+
+2. Corrigir qualquer erro.
+
+3. Verificar runtime.
+
+4. Listar arquivos criados.
+
+5. Listar arquivos alterados.
+
+6. Confirmar explicitamente:
+
+* missionProgressEngine intacto
+* sistema de títulos intacto
+* sistema de missões intacto
+* multiplayer intacto
+* realtime intacto
+* TypeScript com 0 erros
+
+7. NÃO implementar progresso de evento ainda.
+
+Essa entrega é exclusivamente infraestrutura visual e navegação.

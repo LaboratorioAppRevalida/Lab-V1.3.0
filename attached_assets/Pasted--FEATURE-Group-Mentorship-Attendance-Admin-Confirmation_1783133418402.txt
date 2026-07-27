@@ -1,0 +1,44 @@
+# FEATURE: Group Mentorship Attendance & Admin Confirmation System
+
+We have created the `group_mentorship_participants` table in the database with strict RLS (only `is_admin = true` can insert/delete, while admins, mentors, and `is_colaborador` can read). Now, let's implement the entire frontend and service ecosystem in parallel.
+
+---
+
+## 💾 1. SERVICE LAYER (src/lib/mentorshipService.ts)
+Implement the following type and functions using the safe cast patterns:
+1. **Export `GroupParticipant` interface:** `{ id: string; group_id: string; student_id: string; student_name: string; student_avatar?: string; created_at: string }`
+2. **`addStudentToGroup(groupId: string, studentId: string): Promise<void>`**
+   - Inserts a row into `group_mentorship_participants`.
+   - Increments the `current_bookings` column by 1 on that `group_mentorships` row.
+3. **`removeStudentFromGroup(groupId: string, studentId: string): Promise<void>`**
+   - Deletes the corresponding row from `group_mentorship_participants`.
+   - Decrements the `current_bookings` column by 1 on that `group_mentorships` row.
+4. **`listGroupParticipants(groupId: string): Promise<GroupParticipant[]>`**
+   - Queries `group_mentorship_participants` filtering by `group_id`.
+   - Performs a join with the `profiles` table to retrieve the student's name and avatar.
+
+---
+
+## 🛠️ 2. ADMINISTRATOR DASHBOARD (src/pages/admin/AdminMentorias.tsx)
+1. Add a distinct new inner tab or section titled **"Gestão de Participantes"**.
+2. Within this section, render a form with:
+   - **Mentoria Group Dropdown (`select`):** Lists all active group mentorships (displaying Title + Mentor Name).
+   - **Aluno Dropdown (`select`):** Lists all users from the `profiles` table.
+   - **"Confirmar Aluno" Button:** Triggers `addStudentToGroup`, triggers a success toast, clears choices, and refreshes the local participant list.
+3. **Confirmed Students List (Below the form):** When a group mentorship is selected from the dropdown, fetch and list its currently confirmed students showing their name and a delete icon button (Trash) to let the admin remove them if needed (triggering `removeStudentFromGroup`).
+
+---
+
+## 👨‍🏫 3. MENTOR DASHBOARD (src/pages/mentor/MentorDashboard.tsx)
+1. Navigate to the **Mentoria Coletiva** section/tab where the mentor sees the cards for group sessions they created.
+2. Inside each group mentorship card, right underneath the occupancy progress bar, add a neat, expandable accordion or small list called **"Alunos Confirmados ({current_bookings})"**.
+3. Use `listGroupParticipants(groupId)` to dynamically pull the names of the students.
+4. Render them beautifully using small initials/avatar badges with their names. If empty, show a soft text: *"Nenhum aluno confirmado até o momento."*
+
+---
+
+## 🎨 4. STUDENT VIEW CAPACITY CONTROLS (src/pages/Mentorias.tsx)
+1. In the group session card layout, display an explicit vacancy badge using the `Users` icon from lucide: `"{session.current_bookings} / {session.max_capacity} vagas preenchidas"`.
+2. **Sold Out Logic:** If `session.current_bookings >= session.max_capacity`, change the "Garantir Vaga" button text to **"Esgotado"**, add the `disabled` property, and apply a muted neutral/gray styling.
+
+Ensure all modifications are fully typed, avoid any TypeScript compilation errors, and confirm once HMR successfully compiles clean!

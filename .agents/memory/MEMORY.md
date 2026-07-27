@@ -1,0 +1,10 @@
+- [Titles automatic engine](titles-automatic-engine.md) — evaluateAutomaticTitles reuses missionRulesEngine; fire-and-forget in TrainingContext after saveSession.
+- [FASE 4 mission engine architecture](fase4-mission-engine.md) — missionProgressEngine: session vs login triggers, 5-min cache, UUID-direct upsert, graceful last_evaluated_at fallback.
+- [TrainingContext HMR quirk](trainingcontext-hmr.md) — any import added to TrainingContext.tsx triggers Vite "incompatible" Fast Refresh; restart workflow to clear transient InviteModal error.
+- [Supabase join type cast](supabase-join-cast.md) — Supabase foreign key joins (title:titles(*)) type as array; must cast through `unknown` before target type.
+- [unlockTitle ON CONFLICT pattern](unlock-title-conflict.md) — Do NOT use .throwOnError() before checking error.code; use plain .insert() then check String(error.code ?? "").startsWith("23505").
+- [Session restore must call hydrateStation](session-restore-hydrate.md) — session restore sets config.checklistId but never hydrates the checklist map; must await hydrateStation() or Estacao returns null (blank screen).
+- [Médico blank screen — onPartnerConfigured must hydrate](medico-hydrate.md) — onPartnerConfigured sets config but NOT the checklist map; must call void hydrateStation(cfg.checklistId) or médico sees blank screen.
+- [exitTraining presence + session cleanup](exit-training-cleanup.md) — endSession() alone may skip track() if channel briefly disconnects; always follow with resetMultiplayerState() for a reliable available broadcast.
+- [createOrGetMultiplayerSession stale guard](multiplayer-session-terminal.md) — deterministic session_code causes same-pair rematch to reuse old UUID; STALE_FOR_REMATCH_STATUSES covers running/paused too (not just finished/abandoned). Restore path never calls this fn so running=always stale here.
+- [session_ratings global constraint trap](session-ratings-constraint.md) — global UNIQUE(rater_id,rated_id) causes cross-session overwrites; migration 019 uses pg_constraint loop to drop it by column membership, not guessed name.

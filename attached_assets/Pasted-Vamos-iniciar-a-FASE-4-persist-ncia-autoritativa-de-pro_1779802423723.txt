@@ -1,0 +1,108 @@
+Vamos iniciar a FASE 4 — persistência autoritativa de progresso de missões.
+
+IMPORTANTE:
+
+* NÃO alterar realtime/multiplayer/auth.
+* NÃO adicionar battle pass, moedas ou inventário.
+* NÃO quebrar compatibilidade com o sistema atual.
+* NÃO remover fallback legado ainda.
+* NÃO reescrever a engine de rules existente.
+* NÃO tocar no sistema de títulos recém implementado.
+
+Objetivo desta fase:
+transformar o progresso de missões em server-authoritative no Supabase.
+
+O sistema atual ainda depende parcialmente de:
+
+* localStorage
+* recálculo frontend via history
+* sincronizações híbridas
+
+Precisamos consolidar isso.
+
+REQUISITOS:
+
+1. Toda missão deve possuir:
+
+* progresso persistido
+* completed persistido
+* claimed persistido
+* updated_at persistido
+
+2. O progresso deve ser atualizado automaticamente após:
+
+* saveSession()
+* login diário
+* streak update
+* sessões multiplayer
+* sessões por área
+* tempo acumulado
+* média de nota
+* qualquer métrica suportada pela engine atual
+
+3. O frontend NÃO deve recalcular progresso completo em cada render.
+   A engine deve apenas:
+
+* validar
+* complementar
+* exibir
+
+4. Criar uma camada centralizada:
+   missionProgressEngine.ts
+
+Responsabilidades:
+
+* processMissionProgressAfterSession()
+* processLoginMissionProgress()
+* evaluateAndPersistMission()
+* applyMissionRuleDelta()
+* persist only deltas
+
+5. O sistema deve atualizar SOMENTE missões potencialmente afetadas pela ação atual.
+   Evitar loops O(n*m) desnecessários.
+
+6. O sistema deve continuar compatível com:
+
+* MISSIONS[] legado
+* fallback offline
+* missions.conditions
+* trigger_type legado
+
+7. Persistência deve usar:
+   user_mission_progress
+
+Expandir se necessário:
+
+* current_value
+* completed_at
+* claimed_at
+* last_evaluated_at
+* metadata jsonb
+
+8. Toda atualização deve ser idempotente.
+
+9. O progresso deve sobreviver:
+
+* refresh
+* troca de dispositivo
+* logout/login
+* multiplayer reconnect
+
+10. Adicionar logs silenciosos de debug apenas em DEV.
+
+11. Antes de codar:
+
+* audite completamente o fluxo atual de progresso
+* identifique duplicações
+* identifique onde o frontend ainda recalcula tudo
+* proponha arquitetura incremental sem breaking changes
+
+12. Ao finalizar:
+
+* rodar typecheck
+* verificar runtime
+* verificar loops
+* verificar renderizações excessivas
+* listar exatamente os arquivos alterados
+* listar SQLs necessários
+* confirmar que títulos automáticos continuam funcionando
