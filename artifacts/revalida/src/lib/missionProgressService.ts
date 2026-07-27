@@ -126,7 +126,7 @@ export async function upsertMissionProgress(
         completed_at: completed ? now : null,
         updated_at:   now,
       },
-      { onConflict: "user_id,mission_id" },
+      { onConflict: "unique_user_mission" },
     );
 
   if (error) {
@@ -163,7 +163,7 @@ export async function claimMissionReward(
         claimed_at:   now,
         updated_at:   now,
       },
-      { onConflict: "user_id,mission_id" },
+      { onConflict: "unique_user_mission" },
     );
 
   if (error) {
