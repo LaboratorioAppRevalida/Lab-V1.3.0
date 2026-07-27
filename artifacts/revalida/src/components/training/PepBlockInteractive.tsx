@@ -8,24 +8,24 @@ const STYLE_BY_RESPOSTA: Record<
   { bg: string; border: string; ring: string; text: string; label: string }
 > = {
   adequado: {
-    bg: "bg-green-500/10 dark:bg-green-400/10",
-    border: "border-green-400/40 dark:border-green-300/40",
+    bg: "bg-emerald-500/10 dark:bg-emerald-400/10",
+    border: "border-emerald-500/40 dark:border-emerald-300/40",
     ring: "shadow-[0_0_30px_-8px_rgba(16,185,129,0.55)]",
-    text: "text-emerald-700 dark:text-emerald-300",
+    text: "text-emerald-800 dark:text-emerald-300",
     label: "Adequado",
   },
   parcial: {
-    bg: "bg-yellow-400/10 dark:bg-amber-300/10",
-    border: "border-yellow-300/40 dark:border-amber-300/40",
-    ring: "shadow-[0_0_30px_-8px_rgba(234,179,8,0.55)]",
-    text: "text-amber-700 dark:text-amber-300",
+    bg: "bg-amber-400/10 dark:bg-amber-300/10",
+    border: "border-amber-400/40 dark:border-amber-300/40",
+    ring: "shadow-[0_0_30px_-8px_rgba(245,158,11,0.55)]",
+    text: "text-amber-800 dark:text-amber-300",
     label: "Parcialmente adequado",
   },
   inadequado: {
-    bg: "bg-red-500/10 dark:bg-red-400/10",
-    border: "border-red-400/40 dark:border-red-300/40",
+    bg: "bg-rose-500/10 dark:bg-rose-400/10",
+    border: "border-rose-400/40 dark:border-rose-300/40",
     ring: "shadow-[0_0_30px_-8px_rgba(244,63,94,0.55)]",
-    text: "text-red-700 dark:text-red-300",
+    text: "text-rose-800 dark:text-rose-300",
     label: "Inadequado",
   },
 };
@@ -58,26 +58,26 @@ export function PepBlockInteractive({ index, block, current, onMark, onClear, re
       className={`relative rounded-2xl border transition-all backdrop-blur-md ${
         style
           ? `${style.bg} ${style.border} ${style.ring}`
-          : "bg-card/80 border-border/60 hover:border-border"
+          : "bg-white dark:bg-card/80 border-slate-200 dark:border-border/60 hover:border-slate-300 dark:hover:border-border shadow-sm"
       } overflow-hidden`}
     >
       <div className="p-4 sm:p-5 flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div
             className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums ${
-              style ? "bg-white/60 dark:bg-white/10 " + style.text : "bg-primary/10 text-primary"
+              style ? "bg-white/80 dark:bg-white/10 " + style.text : "bg-emerald-600 text-white font-bold"
             }`}
           >
             {String(index + 1).padStart(2, "0")}
           </div>
           <div className="flex-1 min-w-0">
             {block.titulo && (
-              <h4 className={`font-semibold leading-snug ${style ? style.text : "text-foreground"}`}>
+              <h4 className={`font-semibold leading-snug ${style ? style.text : "text-slate-800 dark:text-foreground"}`}>
                 {block.titulo}
               </h4>
             )}
             {block.texto && (
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
                 {block.texto}
               </p>
             )}
@@ -124,7 +124,7 @@ export function PepBlockInteractive({ index, block, current, onMark, onClear, re
         {!readOnly && current && onClear && (
           <button
             onClick={onClear}
-            className="self-start inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="self-start inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-muted-foreground dark:hover:text-foreground transition-colors"
           >
             <RotateCcw className="w-3 h-3" /> Desmarcar
           </button>
@@ -151,14 +151,14 @@ function OptionButton({
 }) {
   const styles: Record<PepResposta, string> = {
     adequado: active
-      ? "bg-emerald-500 text-white border-emerald-500 shadow-[0_8px_22px_-10px_rgba(16,185,129,0.7)]"
-      : "border-emerald-300/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10",
+      ? "bg-emerald-600 text-white border-emerald-600 shadow-[0_8px_22px_-10px_rgba(16,185,129,0.7)]"
+      : "border-slate-300 dark:border-emerald-300/50 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 bg-white dark:bg-transparent",
     parcial: active
       ? "bg-amber-500 text-white border-amber-500 shadow-[0_8px_22px_-10px_rgba(245,158,11,0.7)]"
-      : "border-amber-300/50 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10",
+      : "border-slate-300 dark:border-amber-300/50 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 bg-white dark:bg-transparent",
     inadequado: active
-      ? "bg-rose-500 text-white border-rose-500 shadow-[0_8px_22px_-10px_rgba(244,63,94,0.7)]"
-      : "border-rose-300/50 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10",
+      ? "bg-rose-600 text-white border-rose-600 shadow-[0_8px_22px_-10px_rgba(244,63,94,0.7)]"
+      : "border-slate-300 dark:border-rose-300/50 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 bg-white dark:bg-transparent",
   };
   return (
     <button
@@ -169,7 +169,7 @@ function OptionButton({
         {icon}
         <span>{label}</span>
       </span>
-      <span className={`text-[10px] tabular-nums font-bold opacity-80`}>{hint} pts</span>
+      <span className="text-[10px] tabular-nums font-bold opacity-80">{hint} pts</span>
     </button>
   );
 }

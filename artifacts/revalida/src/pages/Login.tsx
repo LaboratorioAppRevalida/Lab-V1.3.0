@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,11 @@ export default function Login() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Força a remoção da classe 'dark' para manter o tema claro na tela de login
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", senha: "" },
@@ -32,20 +37,20 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] flex items-center justify-center p-4 overflow-hidden bg-background">
+    <div className="[color-scheme:light] relative min-h-[100dvh] flex items-center justify-center p-4 overflow-hidden bg-slate-100">
       {/* Ambient orbs */}
-      <div aria-hidden="true" className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[100px] pointer-events-none bg-primary/8" />
-      <div aria-hidden="true" className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full blur-[100px] pointer-events-none bg-primary/8" />
+      <div aria-hidden="true" className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[100px] pointer-events-none bg-cyan-400/10" />
+      <div aria-hidden="true" className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full blur-[100px] pointer-events-none bg-emerald-400/10" />
 
-        {/* Login card — Bloco Grosso de Vidro Premium Flutuante com Sombra Escura */}
-        <div className="relative w-full max-w-md z-10 rounded-[32px] p-3 backdrop-blur-3xl bg-white/45 transition-all duration-300 border-[5px] border-white/80 dark:border-slate-200/50 shadow-[inset_0_4px_6px_rgba(255,255,255,0.6),0_40px_80px_-12px_rgba(15,23,42,0.25),0_0_2px_rgba(15,23,42,0.2)]">
+      {/* Login card — Bloco Grosso de Vidro Premium Flutuante com Sombra Escura */}
+      <div className="relative w-full max-w-md z-10 rounded-[32px] p-3 backdrop-blur-3xl bg-white/70 transition-all duration-300 border-[5px] border-white/80 shadow-[inset_0_4px_6px_rgba(255,255,255,0.6),0_40px_80px_-12px_rgba(15,23,42,0.15),0_0_2px_rgba(15,23,42,0.1)]">
         <CardHeader className="space-y-6 pb-4">
           {/* TOPO DO CARD — Logo EliteMed Centralizada */}
           <div className="flex flex-col items-center justify-center pt-2 w-full select-none">
             <img 
               src="/logo-elitemed.png" 
               alt="EliteMed Logo" 
-              className="h-14 md:h-16 w-auto object-contain transition-all duration-300 drop-shadow-[0_4px_12px_rgba(6,182,212,0.1)]"
+              className="h-30 md:h-34 w-auto object-contain transition-all duration-300 drop-shadow-[0_4px_12px_rgba(6,182,212,0.1)]"
               draggable="false"
             />
           </div>
@@ -69,7 +74,7 @@ export default function Login() {
                       <Input
                         placeholder="seu@email.com"
                         {...field}
-                        className="h-11 rounded-2xl border-slate-200 bg-white/50 focus-visible:ring-cyan-500 text-slate-900 font-medium placeholder:text-slate-400"
+                        className="h-11 rounded-2xl border-slate-200 bg-white/80 focus-visible:ring-cyan-500 text-slate-900 font-medium placeholder:text-slate-400"
                       />
                     </FormControl>
                     <FormMessage />
@@ -87,7 +92,7 @@ export default function Login() {
                         type="password"
                         placeholder="••••••••"
                         {...field}
-                        className="h-11 rounded-2xl border-slate-200 bg-white/50 focus-visible:ring-cyan-500 text-slate-900 font-medium placeholder:text-slate-400"
+                        className="h-11 rounded-2xl border-slate-200 bg-white/80 focus-visible:ring-cyan-500 text-slate-900 font-medium placeholder:text-slate-400"
                       />
                     </FormControl>
                     <FormMessage />

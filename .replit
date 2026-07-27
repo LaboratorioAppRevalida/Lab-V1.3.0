@@ -48,3 +48,6 @@ LIVEKIT_API_SECRET = "bgS7kaedRoL4DddqmaM4ryQa8dbpXsK0NxntD9lgQpd"
 
 [nix]
 channel = "stable-25_05"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-b3e6d359-c01d-4f4d-bd1e-f538aec4ddd7"

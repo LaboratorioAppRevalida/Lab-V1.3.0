@@ -10,8 +10,6 @@ import { useTraining } from "@/contexts/TrainingContext";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { supabase } from "@/lib/supabase";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
 type Contact = {
   id: string;
   name: string;
@@ -21,8 +19,6 @@ type Contact = {
 
 type StatusBadgeProps = { status: "online" | "in_session" | "busy" | "offline" };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 const SEVEN_DAYS_AGO = () => {
   const d = new Date();
   d.setDate(d.getDate() - 7);
@@ -31,18 +27,16 @@ const SEVEN_DAYS_AGO = () => {
 
 function StatusDot({ status }: StatusBadgeProps) {
   const styles: Record<StatusBadgeProps["status"], string> = {
-    online:     "bg-emerald-500 shadow-[0_0_6px_#10B981]",
-    in_session: "bg-amber-500  shadow-[0_0_6px_#F59E0B]",
-    busy:       "bg-orange-500 shadow-[0_0_6px_#F97316]",
-    offline:    "bg-slate-400/50 dark:bg-slate-600/60",
+    online:     "bg-emerald-400 shadow-[0_0_8px_#34d399]",
+    in_session: "bg-amber-400 stroke-amber-200 shadow-[0_0_8px_#fbbf24]",
+    busy:       "bg-rose-500 shadow-[0_0_8px_#f43f5e]",
+    offline:    "bg-slate-400 border-2 border-[#121824] dark:border-slate-800",
   };
-  const pulse = status !== "offline";
   return (
     <span
       className={cn(
-        "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
-        styles[status],
-        pulse && "animate-pulse"
+        "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-[#0f172a]",
+        styles[status]
       )}
     />
   );
@@ -69,13 +63,11 @@ function resolveStatus(
 function UnreadBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-violet-500 text-white shadow-[0_0_8px_rgba(139,92,246,0.7)]">
+    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse">
       {count > 99 ? "99+" : count}
     </span>
   );
 }
-
-// ── Main Component ────────────────────────────────────────────────────────────
 
 export function AbaChatContainer() {
   const { user } = useAuth();
@@ -83,7 +75,6 @@ export function AbaChatContainer() {
   const { users: trainingUsers } = useTraining();
   const { unreadPublic, unreadPrivate, resetPublic, resetPrivate } = useChatUnread();
 
-  // "publico" | contactId | null
   const [activeChat, setActiveChat] = useState<"publico" | string | null>(() =>
     sessionStorage.getItem("chat_open_with") ? null : "publico"
   );
@@ -93,11 +84,8 @@ export function AbaChatContainer() {
   const [isSearching, setIsSearching]     = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Build contact list from favorites + recent DMs ───────────────────────
-
   const buildContacts = useCallback(async () => {
     if (!user) return;
-
     const favIds = trainingUsers.filter((u) => u.favorito && u.isReal).map((u) => u.id);
 
     const { data: dmRows } = await supabase
@@ -140,8 +128,6 @@ export function AbaChatContainer() {
 
   useEffect(() => { void buildContacts(); }, [buildContacts]);
 
-  // ── Deep-link: open contact injected via sessionStorage ──────────────────
-
   useEffect(() => {
     const targetId = sessionStorage.getItem("chat_open_with");
     if (!targetId || !user) return;
@@ -164,8 +150,6 @@ export function AbaChatContainer() {
         setActiveChat(targetId);
       });
   }, [user]);
-
-  // ── Search all users in platform ─────────────────────────────────────────
 
   useEffect(() => {
     const q = searchQuery.trim();
@@ -196,15 +180,10 @@ export function AbaChatContainer() {
     return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
   }, [searchQuery, user, contacts]);
 
-  // ── Reset unread when switching ───────────────────────────────────────────
-
   useEffect(() => {
     if (activeChat === "publico") resetPublic();
     else if (activeChat !== null) resetPrivate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeChat]);
-
-  // ── Open contact ──────────────────────────────────────────────────────────
+  }, [activeChat, resetPublic, resetPrivate]);
 
   const openContact = (c: Contact) => {
     if (!contacts.find((x) => x.id === c.id)) {
@@ -217,268 +196,163 @@ export function AbaChatContainer() {
 
   const activeContact = contacts.find((c) => c.id === activeChat) ?? null;
   const showConversation = activeChat !== null;
-  const showSidebar = !showConversation; // mobile: sidebar OR convo
 
   const displayList = searchQuery.trim() ? searchResults : contacts;
 
-  // ── Sidebar ───────────────────────────────────────────────────────────────
+  return (
+    <div className="flex w-full h-[calc(100dvh-68px-64px)] bg-slate-100/70 dark:bg-[#090d16] text-slate-800 dark:text-slate-100 rounded-3xl p-4 md:p-6 gap-6 font-sans select-none overflow-hidden transition-colors duration-300">
 
-  const sidebar = (
-    <aside
-      className={cn(
-        "flex flex-col h-full shrink-0",
-        // Mobile: full width unless conversation open
-        "w-full md:w-72 lg:w-80",
-        // Glass panel
-        "bg-white/5 dark:bg-slate-950/60",
-        "border-r border-white/8 dark:border-white/5",
-        "backdrop-blur-xl"
-      )}
-    >
-      {/* Header */}
-      <div className="px-4 pt-5 pb-3 shrink-0">
-        <h2 className="text-lg font-bold tracking-tight text-foreground">Mensagens</h2>
-      </div>
+      {/* SIDEBAR */}
+      <aside className={cn(
+        "flex flex-col h-full shrink-0 w-full md:w-72 lg:w-80 gap-5",
+        showConversation ? "hidden md:flex" : "flex"
+      )}>
+        <div className="px-2 pt-1">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide flex items-center gap-2">
+            Mensagens <span className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]"></span>
+          </h1>
+        </div>
 
-      {/* Search bar */}
-      <div className="px-3 pb-3 shrink-0">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+        {/* Input de Busca Neon */}
+        <div className="relative flex items-center group">
+          <Search className="absolute left-4 w-4 h-4 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Procurar usuário..."
-            className={cn(
-              "w-full pl-9 pr-9 py-2.5 rounded-2xl text-sm",
-              "bg-black/10 dark:bg-white/5",
-              "border border-white/10 dark:border-white/6",
-              "text-foreground placeholder:text-muted-foreground/50",
-              "focus:outline-none focus:border-violet-400/40 focus:bg-black/15 dark:focus:bg-white/8",
-              "transition-all duration-200"
-            )}
+            className="w-full h-11 pl-11 pr-9 rounded-2xl bg-white/80 dark:bg-[#121826]/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm border border-slate-200 dark:border-slate-800 outline-none transition-all duration-300 focus:border-cyan-500 dark:focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(6,182,212,0.35)]"
           />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(""); setSearchResults([]); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors"
+              className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
-      </div>
 
-      {/* Pinned: Chat Público */}
-      {!searchQuery.trim() && (
-        <div className="px-3 pb-2 shrink-0">
+        {/* Chat Público Fixo */}
+        {!searchQuery.trim() && (
           <button
             onClick={() => setActiveChat("publico")}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-left",
-              "transition-all duration-200 group",
+              "relative group p-[1px] rounded-2xl transition-all duration-300 text-left overflow-hidden",
               activeChat === "publico"
-                ? "bg-gradient-to-r from-violet-600/20 to-indigo-600/15 border border-violet-400/25 shadow-[0_2px_16px_rgba(139,92,246,0.15)]"
-                : "bg-white/5 dark:bg-white/3 border border-white/8 hover:bg-white/10 dark:hover:bg-white/6 hover:border-white/15"
+                ? "bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 shadow-[0_0_18px_rgba(168,85,247,0.3)]"
+                : "bg-slate-200 dark:bg-slate-800/60 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-purple-500"
             )}
           >
-            {/* Globe icon as "avatar" */}
-            <div className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-              "bg-gradient-to-br from-violet-500/30 to-indigo-500/25",
-              "border border-violet-400/30",
-              activeChat === "publico" && "shadow-[0_0_12px_rgba(139,92,246,0.4)]"
-            )}>
-              <Globe className="w-5 h-5 text-violet-400" />
+            <div className="flex items-center gap-3 p-3.5 rounded-[15px] bg-white dark:bg-[#111625] transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 border border-cyan-200 dark:border-cyan-800 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.25)] shrink-0">
+                <Globe className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Chat Público</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 truncate">Canal aberto para todos</p>
+              </div>
+              <UnreadBadge count={unreadPublic} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm text-foreground">Chat Público</div>
-              <div className="text-[11px] text-muted-foreground/70 truncate">Canal aberto para todos</div>
-            </div>
-            <UnreadBadge count={unreadPublic} />
           </button>
+        )}
+
+        {/* Divisor Visual */}
+        {!searchQuery.trim() && contacts.length > 0 && (
+          <div className="flex items-center my-1 gap-3 px-2">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">PRIVADO</span>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-slate-200 dark:from-slate-800 to-transparent" />
+          </div>
+        )}
+
+        {/* Lista de Contatos */}
+        <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 min-h-0">
+          {isSearching && (
+            <div className="text-center py-6 text-xs text-slate-400 animate-pulse">Buscando na rede...</div>
+          )}
+
+          {!isSearching && searchQuery.trim() && searchResults.length === 0 && (
+            <div className="text-center py-8 text-xs text-slate-400">Nenhum usuário encontrado</div>
+          )}
+
+          {!isSearching && displayList.map((c) => {
+            const status = resolveStatus(c.id, onlineUsers);
+            const isActive = activeChat === c.id;
+
+            return (
+              <button
+                key={c.id}
+                onClick={() => openContact(c)}
+                className={cn(
+                  "relative group p-[1px] rounded-2xl transition-all duration-300 text-left overflow-hidden",
+                  isActive
+                    ? "bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                    : "bg-slate-200 dark:bg-slate-800/40 hover:bg-gradient-to-r hover:from-cyan-500/50 hover:to-purple-500/50"
+                )}
+              >
+                <div className="flex items-center gap-3 p-3.5 rounded-[15px] bg-white dark:bg-[#111625] transition-colors">
+                  <div className="relative shrink-0">
+                    <UserAvatar name={c.name} avatarUrl={c.avatarUrl} size="md" />
+                    <StatusDot status={status} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate">{c.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">{statusLabel(status)}</p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
-      )}
 
-      {/* Separator */}
-      {!searchQuery.trim() && contacts.length > 0 && (
-        <div className="px-4 pb-2 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="h-px flex-1 bg-white/8" />
-            <span className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-semibold">Privado</span>
-            <div className="h-px flex-1 bg-white/8" />
-          </div>
-        </div>
-      )}
-
-      {/* Contact / search list */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3 min-h-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-        {isSearching && (
-          <div className="flex justify-center py-8 text-muted-foreground/50 text-xs">Buscando…</div>
-        )}
-
-        {!isSearching && searchQuery.trim() && searchResults.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground text-center">
-            <Search className="w-7 h-7 opacity-20" />
-            <p className="text-xs font-medium">Nenhum usuário encontrado</p>
-          </div>
-        )}
-
-        {!isSearching && !searchQuery.trim() && contacts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground text-center px-4">
-            <MessageCircle className="w-9 h-9 opacity-15" />
-            <p className="text-sm font-semibold">Nenhuma conversa ainda</p>
-            <p className="text-xs opacity-60 leading-relaxed">
-              Use a busca acima para encontrar colegas e iniciar uma conversa privada.
-            </p>
-          </div>
-        )}
-
-        {!isSearching && displayList.length > 0 && (
-          <ul className="flex flex-col gap-1">
-            {displayList.map((c) => {
-              const status = resolveStatus(c.id, onlineUsers);
-              const isActive = activeChat === c.id;
-              return (
-                <li key={c.id}>
-                  <button
-                    onClick={() => openContact(c)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left",
-                      "transition-all duration-200",
-                      isActive
-                        ? "bg-gradient-to-r from-violet-600/18 to-indigo-600/12 border border-violet-400/22 shadow-[0_2px_12px_rgba(139,92,246,0.12)]"
-                        : "bg-transparent border border-transparent hover:bg-white/6 dark:hover:bg-white/4 hover:border-white/10"
-                    )}
-                  >
-                    <div className="relative shrink-0">
-                      <UserAvatar name={c.name} avatarUrl={c.avatarUrl} size="md" />
-                      <StatusDot status={status} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-foreground truncate">{c.name}</div>
-                      <div className={cn(
-                        "text-[11px] font-medium",
-                        status === "online"     && "text-emerald-500 dark:text-emerald-400",
-                        status === "in_session" && "text-amber-500 dark:text-amber-400",
-                        status === "busy"       && "text-orange-500 dark:text-orange-400",
-                        status === "offline"    && "text-muted-foreground/60"
-                      )}>
-                        {statusLabel(status)}
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      {/* Footer notice */}
-      <div className="px-4 py-2 shrink-0 border-t border-white/6">
-        <p className="text-[9px] text-muted-foreground/40 text-center">
+        <p className="text-[11px] text-slate-400 dark:text-slate-600 text-center">
           Público: 24 h · Privado: 7 dias
         </p>
-      </div>
-    </aside>
-  );
+      </aside>
 
-  // ── Conversation panel ─────────────────────────────────────────────────────
-
-  const conversationPanel = (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0">
-      {activeChat === null ? (
-        /* Empty state */
-        <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground select-none px-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-white/5 dark:bg-white/3 border border-white/8 flex items-center justify-center">
-            <MessageCircle className="w-7 h-7 opacity-30" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">Selecione uma conversa</p>
-            <p className="text-xs opacity-60 mt-1">Escolha o Chat Público ou uma conversa privada ao lado.</p>
-          </div>
-        </div>
-      ) : activeChat === "publico" ? (
-        <ChatPublico />
-      ) : (
-        activeContact && (
-          <ChatPrivado
-            activeId={activeChat}
-            contact={activeContact}
-            onBack={() => setActiveChat(null)}
-          />
-        )
-      )}
-    </div>
-  );
-
-  // ── Layout ────────────────────────────────────────────────────────────────
-
-  return (
-    <div
-      className={cn(
-        "flex h-[calc(100dvh-68px-64px)] min-h-0 rounded-2xl overflow-hidden",
-        "bg-black/5 dark:bg-slate-950/40 backdrop-blur-xl",
-        "border border-white/8 dark:border-white/5",
-        "shadow-2xl shadow-black/20"
-      )}
-    >
-      {/* Mobile: show sidebar OR conversation */}
-      <div className={cn("md:flex flex-col min-h-0 w-full md:w-auto", showConversation ? "hidden md:flex" : "flex")}>
-        {sidebar}
-      </div>
-
-      {/* Mobile: conversation takes full width */}
-      <div className={cn("md:flex flex-1 flex-col min-h-0", showConversation ? "flex" : "hidden md:flex")}>
-        {/* Mobile back button injected at top when in a conversation (non-public) */}
-        {showConversation && activeChat !== "publico" && activeContact && (
-          <div className="md:hidden flex items-center gap-3 px-3 py-2.5 shrink-0 border-b border-white/8 bg-black/5 dark:bg-black/15 backdrop-blur-sm">
+      {/* ÁREA PRINCIPAL DA CONVERSA */}
+      <main className={cn(
+        "flex-1 flex flex-col rounded-3xl bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.05)] dark:shadow-[0_0_35px_rgba(15,23,42,0.8)] overflow-hidden p-4 md:p-6 min-h-0 relative",
+        showConversation ? "flex" : "hidden md:flex"
+      )}>
+        {/* Mobile Header Back Button */}
+        {showConversation && (
+          <div className="md:hidden flex items-center gap-2 pb-3 mb-2 border-b border-slate-200 dark:border-slate-800">
             <button
               onClick={() => setActiveChat(null)}
-              className="p-1.5 rounded-xl hover:bg-white/10 transition-colors shrink-0"
-              aria-label="Voltar"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="relative shrink-0">
-              <UserAvatar name={activeContact.name} avatarUrl={activeContact.avatarUrl} size="sm" />
-              <StatusDot status={resolveStatus(activeChat, onlineUsers)} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm truncate">{activeContact.name}</div>
-              <div className={cn(
-                "text-[10px] font-medium",
-                resolveStatus(activeChat, onlineUsers) === "online"     && "text-emerald-500",
-                resolveStatus(activeChat, onlineUsers) === "in_session" && "text-amber-500",
-                resolveStatus(activeChat, onlineUsers) === "busy"       && "text-orange-500",
-                resolveStatus(activeChat, onlineUsers) === "offline"    && "text-muted-foreground"
-              )}>
-                {statusLabel(resolveStatus(activeChat, onlineUsers))}
+            <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">Voltar</span>
+          </div>
+        )}
+
+        {activeChat === null ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-slate-400 select-none">
+            <div className="relative p-[2px] rounded-3xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 shadow-[0_0_25px_rgba(168,85,247,0.3)]">
+              <div className="w-16 h-16 rounded-[22px] bg-white dark:bg-[#0b0f17] flex items-center justify-center text-cyan-500 dark:text-cyan-400">
+                <MessageCircle className="w-8 h-8" />
               </div>
             </div>
-          </div>
-        )}
-        {showConversation && activeChat === "publico" && (
-          <div className="md:hidden flex items-center gap-3 px-3 py-2.5 shrink-0 border-b border-white/8 bg-black/5 dark:bg-black/15 backdrop-blur-sm">
-            <button
-              onClick={() => setActiveChat(null)}
-              className="p-1.5 rounded-xl hover:bg-white/10 transition-colors shrink-0"
-              aria-label="Voltar"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br from-violet-500/30 to-indigo-500/25 border border-violet-400/30 shrink-0">
-              <Globe className="w-4 h-4 text-violet-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm">Chat Público</div>
-              <div className="text-[10px] text-muted-foreground/70">Canal aberto para todos</div>
+            <div className="text-center">
+              <p className="font-semibold text-slate-800 dark:text-slate-200 text-base">Selecione uma conversa</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Escolha o Chat Público ou um contato ao lado.</p>
             </div>
           </div>
+        ) : activeChat === "publico" ? (
+          <ChatPublico />
+        ) : (
+          activeContact && (
+            <ChatPrivado
+              activeId={activeChat}
+              contact={activeContact}
+              onBack={() => setActiveChat(null)}
+            />
+          )
         )}
-        {conversationPanel}
-      </div>
+      </main>
+
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/lib/supabase";
-import { BrandMark } from "@/components/BrandMark";
 import { CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +49,16 @@ export default function EsqueciSenha() {
 
       {/* Card */}
       <div className="relative w-full max-w-md z-10 rounded-2xl shadow-2xl bg-card/80 backdrop-blur-2xl border border-border">
-        <CardHeader className="space-y-6 pb-4">
-          <BrandMark />
+        <CardHeader className="space-y-6 pb-4 flex flex-col items-center">
+          {/* Logo oficial vinda do diretório public */}
+          <div className="flex justify-center items-center py-2">
+            <img 
+              src="/logo-elitemed.png" 
+              alt="EliteMed - Preparando Médicos de Elite" 
+              className="h-20 w-auto object-contain" 
+            />
+          </div>
+
           <div className="text-center space-y-1.5">
             <h1 className="text-2xl font-bold text-foreground">Recuperar senha</h1>
             <p className="text-sm text-muted-foreground">
@@ -94,11 +101,11 @@ export default function EsqueciSenha() {
                       <FormLabel>E-mail</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-muted-foreground z-10" />
                           <Input
                             placeholder="seu@email.com"
                             {...field}
-                            className="h-11 pl-9"
+                            className="h-11 pl-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl"
                           />
                         </div>
                       </FormControl>
@@ -116,7 +123,7 @@ export default function EsqueciSenha() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 text-base font-semibold gradient-primary text-white border-0 mt-2 glow-primary"
+                  className="w-full h-11 text-base font-semibold gradient-primary text-white border-0 mt-2 glow-primary rounded-xl"
                   disabled={isLoading}
                 >
                   {isLoading ? "Enviando…" : "Enviar link de redefinição"}

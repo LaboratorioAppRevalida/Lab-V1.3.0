@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "@/components/users/UserAvatar";
-import { Globe, Send } from "lucide-react";
+import { Globe, Send, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type PublicMessage = {
@@ -31,9 +31,6 @@ export function ChatPublico() {
   const [draft, setDraft]       = useState("");
   const [sending, setSending]   = useState(false);
   const bottomRef   = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // ── Load history on mount ─────────────────────────────────────────────────
 
   useEffect(() => {
     supabase
@@ -46,8 +43,6 @@ export function ChatPublico() {
         if (data) setMessages(data as unknown as PublicMessage[]);
       });
   }, []);
-
-  // ── Realtime: new messages from other users ───────────────────────────────
 
   useEffect(() => {
     if (!user) return;
@@ -90,17 +85,6 @@ export function ChatPublico() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Auto-resize textarea ──────────────────────────────────────────────────
-
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 120) + "px";
-  }, [draft]);
-
-  // ── Send ──────────────────────────────────────────────────────────────────
-
   const send = async () => {
     const text = draft.trim();
     if (!text || !user || sending) return;
@@ -141,34 +125,30 @@ export function ChatPublico() {
   const myId    = user?.id;
   const hasDraft = draft.trim().length > 0;
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div className="flex flex-col h-full min-h-0">
-
-      {/* ── Channel header (desktop only — mobile header comes from AbaChatContainer) ── */}
-      <div className={cn(
-        "hidden md:flex items-center gap-3 px-4 py-3 shrink-0",
-        "border-b border-white/8 dark:border-white/5",
-        "bg-white/5 dark:bg-black/20 backdrop-blur-sm"
-      )}>
-        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-gradient-to-br from-violet-500/30 to-indigo-500/25 border border-violet-400/30">
-          <Globe className="w-4 h-4 text-violet-400" />
+      {/* Header Neon */}
+      <header className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+        <div className="p-[1px] rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
+          <div className="w-10 h-10 rounded-[11px] bg-white dark:bg-[#0b0f17] flex items-center justify-center text-cyan-500">
+            <Globe className="w-5 h-5" />
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm text-foreground">Chat Público</div>
-          <div className="text-[10px] text-muted-foreground/60">Canal aberto para todos os participantes</div>
+        <div>
+          <h2 className="font-bold text-slate-900 dark:text-white text-base tracking-wide">Chat Público</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500">Canal aberto para todos os participantes</p>
         </div>
-      </div>
+      </header>
 
-      {/* ── Messages area ── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-
+      {/* Mensagens */}
+      <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4 min-h-0 pr-1">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground select-none text-center">
-            <span className="text-4xl">💬</span>
-            <p className="text-sm font-semibold">Nenhuma mensagem ainda</p>
-            <p className="text-xs opacity-60">Seja o primeiro a iniciar a conversa pública!</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center my-auto">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400">
+              <MessageSquare className="w-7 h-7" />
+            </div>
+            <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Nenhuma mensagem ainda</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Seja o primeiro a iniciar a conversa pública!</p>
           </div>
         )}
 
@@ -179,43 +159,28 @@ export function ChatPublico() {
           const time       = new Date(m.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
           return (
-            <div key={m.id} className={cn("flex items-end gap-2", isMe ? "flex-row-reverse" : "flex-row")}>
+            <div key={m.id} className={cn("flex items-end gap-2.5", isMe ? "flex-row-reverse" : "flex-row")}>
               {!isMe && (
-                <div className="shrink-0 mb-4">
+                <div className="shrink-0 mb-1">
                   <UserAvatar name={senderName} avatarUrl={avatarUrl} size="sm" />
                 </div>
               )}
 
-              <div className={cn("flex flex-col gap-1 max-w-[76%]", isMe && "items-end")}>
+              <div className={cn("flex flex-col gap-1 max-w-[75%]", isMe && "items-end")}>
                 {!isMe && (
-                  <span className="text-[10px] font-semibold text-muted-foreground/70 px-1 leading-none">
-                    {senderName}
-                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 px-2">{senderName}</span>
                 )}
 
                 <div className={cn(
-                  "px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap",
-                  "transition-all duration-200",
+                  "px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap rounded-2xl transition-all duration-300",
                   isMe
-                    ? [
-                        "bg-gradient-to-br from-violet-600 to-indigo-600",
-                        "text-white",
-                        "rounded-2xl rounded-br-none",
-                        "shadow-[0_4px_20px_rgba(139,92,246,0.35)]",
-                      ].join(" ")
-                    : [
-                        "bg-white/80 dark:bg-slate-900/60",
-                        "backdrop-blur-md",
-                        "border border-slate-200/60 dark:border-white/10",
-                        "text-foreground",
-                        "rounded-2xl rounded-bl-none",
-                        "shadow-sm",
-                      ].join(" ")
+                    ? "bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] rounded-br-xs font-medium"
+                    : "bg-white dark:bg-[#121826] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800/80 shadow-sm rounded-bl-xs"
                 )}>
                   {m.content}
                 </div>
 
-                <span className="text-[9px] text-muted-foreground/50 px-1">{time}</span>
+                <span className="text-[9px] text-slate-400 dark:text-slate-600 px-1">{time}</span>
               </div>
             </div>
           );
@@ -224,45 +189,33 @@ export function ChatPublico() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Input footer ── */}
-      <div className={cn(
-        "shrink-0 px-3 py-3 flex items-end gap-2",
-        "border-t border-white/8 dark:border-white/5",
-        "bg-white/5 dark:bg-black/15 backdrop-blur-sm"
-      )}>
-        <textarea
-          ref={textareaRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder="Mensagem pública…"
-          rows={1}
-          maxLength={500}
-          className={cn(
-            "flex-1 resize-none rounded-2xl px-4 py-2.5 text-sm",
-            "bg-black/8 dark:bg-white/5",
-            "border border-white/10 dark:border-white/8",
-            "text-foreground placeholder:text-muted-foreground/40",
-            "focus:outline-none focus:border-violet-400/50 focus:bg-black/12 dark:focus:bg-white/8",
-            "focus:shadow-[0_0_0_3px_rgba(139,92,246,0.12)]",
-            "transition-all duration-200 min-h-[42px] max-h-[120px]",
-            "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
-          )}
-        />
-        <button
-          onClick={() => void send()}
-          disabled={!hasDraft || sending}
-          aria-label="Enviar mensagem"
-          className={cn(
-            "shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200",
-            hasDraft
-              ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-[0_4px_16px_rgba(139,92,246,0.45)] hover:shadow-[0_4px_24px_rgba(139,92,246,0.65)] hover:scale-105 active:scale-95"
-              : "bg-white/8 dark:bg-white/5 text-muted-foreground/40 border border-white/10 cursor-not-allowed"
-          )}
-        >
-          <Send className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Input de Envio estilo Barra de Pesquisa Neon (da imagem) */}
+      <footer className="pt-3 border-t border-slate-200 dark:border-slate-800 shrink-0">
+        <div className="relative p-[1px] rounded-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 shadow-[0_0_20px_rgba(168,85,247,0.25)] dark:shadow-[0_0_25px_rgba(6,182,212,0.2)]">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#0b0f17]">
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="Mensagem pública..."
+              className="flex-1 h-10 px-3 bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm outline-none"
+            />
+            <button
+              onClick={() => void send()}
+              disabled={!hasDraft || sending}
+              className={cn(
+                "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 shrink-0",
+                hasDraft
+                  ? "bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_12px_rgba(6,182,212,0.5)] active:scale-95"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+              )}
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

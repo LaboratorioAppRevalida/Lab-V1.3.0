@@ -27,11 +27,17 @@ export function AppHeader() {
   const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-background/70 border-b border-cyan-400/20 shadow-[0_1px_0_rgba(6,182,212,0.08)]">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
       <div className="flex items-center justify-between h-16 max-w-3xl mx-auto px-4">
         {/* Left Side */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleLogout} 
+            title="Sair" 
+            className="h-9 w-9 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+          >
             <LogOut className="h-5 w-5" />
           </Button>
           <StreakPill />
@@ -40,21 +46,30 @@ export function AppHeader() {
         {/* Right Side */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-sm font-semibold leading-none text-white">{user?.displayName || user?.name.split(' ')[0]}</span>
-            <span className="text-xs text-cyan-300/60 leading-none mt-1">{user?.role === 'admin' ? 'Administrador' : 'Estudante'}</span>
+            <span className="text-sm font-bold leading-none text-slate-900 dark:text-white">
+              {user?.displayName || user?.name?.split(' ')[0]}
+            </span>
+            <span className="text-xs font-semibold leading-none text-cyan-600 dark:text-cyan-400 mt-1">
+              {user?.role === 'admin' ? 'Administrador' : 'Estudante'}
+            </span>
           </div>
-          
-          <Avatar className="h-9 w-9 border border-cyan-400/30 shadow-[0_0_10px_rgba(6,182,212,0.15)]">
+
+          <Avatar className="h-9 w-9 border border-slate-200 dark:border-cyan-500/30 shadow-sm">
             {user?.avatarUrl && (
               <AvatarImage src={resolveImage(user.avatarUrl, "avatars")} alt={user.displayName || user.name} className="object-cover" />
             )}
-            <AvatarFallback className="gradient-primary text-white font-bold text-sm">
+            <AvatarFallback className="bg-cyan-600 text-white font-bold text-sm">
               {user ? formatInitials(user.name) : "U"}
             </AvatarFallback>
           </Avatar>
 
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleTheme} 
+            className="h-9 w-9 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+          >
+            {isDark ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-600" />}
           </Button>
         </div>
       </div>
