@@ -1,0 +1,61 @@
+Atue como Desenvolvedor Frontend Sênior e UI/UX Specialist. Refatore as variáveis de tema e a classe de utilitários no `global.css` (ou `index.css`) para eliminar o aspecto cinza translúcido desbotado do modo claro, aplicando a identidade visual sólida e com brilho neon da marca EliteMed.
+
+---
+
+⚠️ REGRAS DE PRESERVAÇÃO:
+1. Altere APENAS arquivos de estilo global (`global.css`, `index.css` ou `tailwind.config.js`).
+2. NÃO altere nenhuma lógica de React, estados ou componentes JSX das páginas.
+
+---
+
+### TAREFA 1: Redefinição dos Cards e Elevação (Tema Claro & Geral)
+
+Substitua a implementação da classe `.glass-card` (e variáveis globais de card) por uma estética sólida, flutuante e com sombra sutil/neon:
+
+1. Estilo para Modos Claros (Cards Sólidos e Flutuantes):
+- Background: Branco Sólido (`#FFFFFF`) ou Off-white muito leve (`#F8FAFC`).
+- Remover opacidades cinzas ou transparências desbotadas (`backdrop-blur` desnecessário em superfícies brancas).
+- Bordas: Linhas finas e limpas em azul/ciano bem suave (ex: `1px solid rgba(0, 229, 217, 0.15)` ou `border-slate-200`).
+- Sombra de Flutuação (Depth):
+  `box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.08), 0 8px 10px -6px rgba(0, 229, 217, 0.05);`
+
+2. Toques de Neon da Marca EliteMed:
+- Cor Accent Primária (Ciano/Turquesa Neon): `#00E5D9` / `#00F2FE`
+- Cor Dark/Texto (Azul Profundo Elite): `#0A192F`
+- Para elementos em foco, hover ou destaque, aplique o brilho de néon em ciano:
+  `box-shadow: 0 0 15px rgba(0, 229, 217, 0.35);`
+
+---
+
+### TAREFA 2: Atualização do CSS Global (`global.css` / `index.css`)
+
+Aplique a seguinte definição para os utilitários de card e componentes:
+
+.glass-card, [data-slot="card"] {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 229, 217, 0.2);
+  border-radius: var(--radius, 12px);
+  box-shadow: 
+    0 10px 30px -5px rgba(10, 25, 47, 0.08),
+    0 4px 12px -2px rgba(0, 229, 217, 0.06);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 229, 217, 0.5);
+  box-shadow: 
+    0 15px 35px -5px rgba(10, 25, 47, 0.12),
+    0 0 20px rgba(0, 229, 217, 0.25);
+}
+
+/* Garante que overlays de modal/popover fiquem nítidos e não acinzentados */
+.dialog-content, [role="dialog"] {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 229, 217, 0.3) !important;
+  box-shadow: 0 25px 50px -12px rgba(10, 25, 47, 0.25), 0 0 25px rgba(0, 229, 217, 0.15) !important;
+}
+
+---
+
+Após atualizar os estilos, certifique-se de que o aplicativo compila perfeitamente executando `npm run build`.
