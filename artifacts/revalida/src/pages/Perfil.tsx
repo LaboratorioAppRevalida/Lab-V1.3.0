@@ -368,17 +368,19 @@ export default function Perfil() {
                   </div>
                 )}
 
-                {user.birthDate && (
+                {user?.birthDate ? (
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium leading-none mb-1">Data de nascimento</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(user.birthDate).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+                        {user.birthDate.includes("-") 
+                          ? user.birthDate.split("T")[0].split("-").reverse().join("/")
+                          : user.birthDate}
                       </p>
                     </div>
                   </div>
-                )}
+                ) : null}
 
                 {(user.cityUf || user.country) && (
                   <div className="flex items-start gap-3">

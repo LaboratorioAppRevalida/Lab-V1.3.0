@@ -1,0 +1,61 @@
+Atue como Desenvolvedor Sênior em Next.js e Tailwind CSS. Execute com precisão estrita apenas as alterações descritas abaixo nos arquivos `global.css` e `Perfil.tsx`.
+
+---
+
+⚠️ REGRAS INVIOLÁVEIS DE PRESERVAÇÃO (LEIA COM ATENÇÃO):
+1. NÃO altere, refatore ou delete nenhum outro arquivo além de `global.css` e `Perfil.tsx`.
+2. NÃO altere o arquivo `Estacao.tsx` sob nenhuma hipótese.
+3. PRESERVE 100% das funcionalidades, estados, rotas, componentes e lógicas de negócio existentes na plataforma. O objetivo deste ajuste é estritamente de saneamento de CSS e correção de bug de renderização isolado.
+
+---
+
+### TAREFA 1: Refatoração do `global.css`
+
+1. Remova do `global.css` quaisquer seletores globais rígidos que contenham `!important` aplicados a marcas genéricas (como `[data-slot="card"] !important`, `.card !important` ou `.grid > div !important`).
+
+2. Mantenha ou adicione a classe `.glass-card` com a seguinte estrutura de estilo segura:
+
+.glass-card {
+  border-radius: var(--radius);
+  backdrop-filter: blur(var(--glass-blur, 12px)) saturate(190%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px)) saturate(190%);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 20px 40px -15px rgba(4, 13, 20, 0.2);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:active {
+  transform: translateY(1px);
+}
+
+---
+
+### TAREFA 2: Correção de Hydration no `Perfil.tsx`
+
+No arquivo `Perfil.tsx`, localize a exibição da data de nascimento do usuário (`user.birthDate`).
+
+Substitua a conversão via `new Date(user.birthDate)` por uma manipulação direta de string para garantir compatibilidade com SSR/CSR:
+
+{user?.birthDate ? (
+  <div className="flex items-start gap-3">
+    <Calendar className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+    <div>
+      <p className="text-sm font-medium leading-none mb-1">Data de nascimento</p>
+      <p className="text-sm text-muted-foreground">
+        {user.birthDate.includes("-") 
+          ? user.birthDate.split("T")[0].split("-").reverse().join("/")
+          : user.birthDate}
+      </p>
+    </div>
+  </div>
+) : null}
+
+---
+
+Após aplicar as alterações, execute o comando `npm run build` no terminal do Replit para confirmar a compilação sem erros.
