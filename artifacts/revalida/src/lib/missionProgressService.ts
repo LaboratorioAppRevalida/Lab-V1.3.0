@@ -74,7 +74,7 @@ export async function fetchUserMissionProgress(
 
   if (progressError) throw progressError;
 
-  // Busca as referências de missões para correlacionar slugs e IDs[cite: 6]
+  // Busca as referências de missões para correlacionar slugs e IDs
   const { data: missionsData, error: missionsError } = await supabase
     .from("missions")
     .select("id, slug");
@@ -113,8 +113,8 @@ export async function fetchUserMissionProgress(
 }
 
 /**
- * Cria ou atualiza o registro de progresso de uma missão[cite: 6].
- * Silencioso em caso de erro — mantém o sistema funcionando sem interrupção[cite: 6].
+ * Cria ou atualiza o registro de progresso de uma missão.
+ * Silencioso em caso de erro — mantém o sistema funcionando sem interrupção.
  */
 export async function upsertMissionProgress(
   userId: string,
@@ -139,8 +139,7 @@ export async function upsertMissionProgress(
         completed,
         completed_at: completed ? now : null,
         updated_at:   now,
-      },
-      { onConflict: "unique_user_mission" },
+      }
     );
 
   if (error) {
@@ -149,8 +148,8 @@ export async function upsertMissionProgress(
 }
 
 /**
- * Marca uma missão como reivindicada (claimed=true) no Supabase[cite: 6].
- * Silencioso em caso de erro — o claim no localStorage já foi feito[cite: 6].
+ * Marca uma missão como reivindicada (claimed=true) no Supabase.
+ * Silencioso em caso de erro — o claim no localStorage já foi feito.
  */
 export async function claimMissionReward(
   userId: string,
@@ -176,8 +175,7 @@ export async function claimMissionReward(
         completed_at: now,
         claimed_at:   now,
         updated_at:   now,
-      },
-      { onConflict: "unique_user_mission" },
+      }
     );
 
   if (error) {
@@ -186,9 +184,9 @@ export async function claimMissionReward(
 }
 
 /**
- * Migra claims do localStorage para o Supabase[cite: 6].
- * Não remove o localStorage — apenas espelha para o banco[cite: 6].
- * Usado no mount de Conquistas.tsx para migração segura[cite: 6].
+ * Migra claims do localStorage para o Supabase.
+ * Não remove o localStorage — apenas espelha para o banco.
+ * Usado no mount de Conquistas.tsx para migração segura.
  */
 export async function syncLegacyMissionProgress(
   userId: string,
