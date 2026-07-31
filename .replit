@@ -45,6 +45,7 @@ externalPort = 3000
 LIVEKIT_URL = "wss://elitemed-web-app-eswsszyu.livekit.cloud"
 LIVEKIT_API_KEY = "APIEbERhLMkaYHG"
 LIVEKIT_API_SECRET = "bgS7kaedRoL4DddqmaM4ryQa8dbpXsK0NxntD9lgQpd"
+VITE_WHATSAPP_CONSULTORIA = "556282636485"
 
 [nix]
 channel = "stable-25_05"

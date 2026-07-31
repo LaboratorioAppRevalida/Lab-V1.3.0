@@ -142,9 +142,9 @@ export default function VitrinePlanos() {
 
   const handleCheckout = async (planId: string) => {
     if (planId === "passaporte") {
-      const url =
-        (import.meta.env.VITE_WHATSAPP_CONSULTORIA as string | undefined) ??
-        "https://wa.me/5500000000000";
+      const rawEnv = (import.meta.env.VITE_WHATSAPP_CONSULTORIA as string | undefined) || "556282636485";
+      const cleanNumber = rawEnv.replace(/\D/g, "");
+      const url = `https://wa.me/${cleanNumber}`;
       window.open(url, "_blank", "noopener,noreferrer");
       return;
     }
