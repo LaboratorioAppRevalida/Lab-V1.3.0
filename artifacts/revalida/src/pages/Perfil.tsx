@@ -57,7 +57,9 @@ import {
 type EditForm = {
   name: string;
   display_name: string;
-  city_uf: string;
+  country: string;
+  state_uf: string;
+  city: string;
   phone: string;
   birth_date: string;
 };
@@ -81,7 +83,9 @@ export default function Perfil() {
   const [form, setForm] = useState<EditForm>({
     name: "",
     display_name: "",
-    city_uf: "",
+    country: "Brasil",
+    state_uf: "",
+    city: "",
     phone: "",
     birth_date: "",
   });
@@ -195,7 +199,9 @@ export default function Perfil() {
     setForm({
       name: user?.name ?? "",
       display_name: user?.displayName ?? "",
-      city_uf: user?.cityUf ?? "",
+      country: user?.country ?? "Brasil",
+      state_uf: user?.stateUf ?? "",
+      city: user?.city ?? user?.cityUf ?? "",
       phone: user?.phone ?? "",
       birth_date: user?.birthDate ?? "",
     });
@@ -210,13 +216,18 @@ export default function Perfil() {
       return;
     }
     setSaving(true);
+
     const success = await updateProfile({
       name: form.name.trim(),
       display_name: form.display_name.trim() || null,
-      city_uf: form.city_uf.trim() || null,
+      country: form.country.trim() || null,
+      state_uf: form.country === "Brasil" ? form.state_uf.trim() || null : null,
+      city: form.city.trim() || null,
+      city_uf: form.country === "Brasil" && form.state_uf ? `${form.city.trim()} - ${form.state_uf.trim()}` : form.city.trim() || null,
       phone: form.phone.trim() || null,
       birth_date: form.birth_date || null,
     });
+
     setSaving(false);
     if (success) {
       toast.success("Perfil atualizado!");
@@ -378,13 +389,21 @@ export default function Perfil() {
                 </div>
               ) : null}
 
-              {(user.cityUf || user.country) && (
+              {(user.city || user.cityUf || user.country) && (
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Localização</p>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                      {[user.cityUf, user.country].filter(Boolean).join(", ")}
+                      {(() => {
+                        const city = user.city || user.cityUf;
+                        const state = user.stateUf;
+                        const country = user.country;
+
+                        if (city && state && country) return `${city} - ${state}, ${country}`;
+                        if (city && country) return `${city}, ${country}`;
+                        return [city, state, country].filter(Boolean).join(", ");
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -424,15 +443,52 @@ export default function Perfil() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="city_uf">Cidade / Estado</Label>
+                <Label htmlFor="country">País</Label>
                 <Input
-                  id="city_uf"
-                  value={form.city_uf}
-                  onChange={(e) => setForm((f) => ({ ...f, city_uf: e.target.value }))}
-                  placeholder="Ex: Goiânia - GO, Brasil"
+                  id="country"
+                  value={form.country}
+                  onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                  placeholder="Ex: Brasil, Paraguai, Bolívia"
                   className="h-11 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm focus-visible:ring-blue-500"
                 />
               </div>
+
+              {form.country === "Brasil" ? (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="state_uf">Estado (UF)</Label>
+                    <Input
+                      id="state_uf"
+                      value={form.state_uf}
+                      onChange={(e) => setForm((f) => ({ ...f, state_uf: e.target.value.toUpperCase() }))}
+                      placeholder="Ex: GO, SP, RJ"
+                      maxLength={2}
+                      className="h-11 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm focus-visible:ring-blue-500 uppercase"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input
+                      id="city"
+                      value={form.city}
+                      onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                      placeholder="Ex: Goiânia"
+                      className="h-11 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm focus-visible:ring-blue-500"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="city">Cidade</Label>
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                    placeholder="Ex: Ciudad del Este"
+                    className="h-11 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm focus-visible:ring-blue-500"
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="phone">Telefone</Label>

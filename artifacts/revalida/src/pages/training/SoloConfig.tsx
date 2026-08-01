@@ -66,10 +66,6 @@ export default function SoloConfig() {
     if (!tempo || !checklistId) return;
     setIsStarting(true);
     try {
-      // Fetch and cache full station details before starting.
-      // This is the only moment exam content (actor scripts, PEP texts,
-      // case scenario) enters the browser — after the user has already
-      // committed to the station and the countdown is about to begin.
       const detail = await hydrateStation(checklistId);
       if (!detail) {
         setIsStarting(false);
@@ -109,7 +105,7 @@ export default function SoloConfig() {
         </motion.div>
 
         {/* TEMPO */}
-        <Card className="rounded-2xl p-5 border-border/60 flex flex-col gap-4">
+        <Card className="rounded-2xl p-5 border-white/40 dark:border-border/60 bg-gradient-to-br from-blue-500/30 via-cyan-500/20 to-violet-500/30 dark:bg-card/60 backdrop-blur-xl shadow-xl dark:shadow-none flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Clock className="w-4 h-4" />
@@ -137,7 +133,7 @@ export default function SoloConfig() {
         </Card>
 
         {/* ÁREA */}
-        <Card className="rounded-2xl p-5 border-border/60 flex flex-col gap-4">
+        <Card className="rounded-2xl p-5 border-white/40 dark:border-border/60 bg-gradient-to-br from-blue-500/30 via-cyan-500/20 to-violet-500/30 dark:bg-card/60 backdrop-blur-xl shadow-xl dark:shadow-none flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
               <ListChecks className="w-4 h-4" />
@@ -174,7 +170,7 @@ export default function SoloConfig() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
             >
-              <Card className="rounded-2xl p-5 border-border/60 flex flex-col gap-4">
+              <Card className="rounded-2xl p-5 border-white/40 dark:border-border/60 bg-gradient-to-br from-blue-500/30 via-cyan-500/20 to-violet-500/30 dark:bg-card/60 backdrop-blur-xl shadow-xl dark:shadow-none flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <h3 className="font-semibold">Checklists disponíveis</h3>
