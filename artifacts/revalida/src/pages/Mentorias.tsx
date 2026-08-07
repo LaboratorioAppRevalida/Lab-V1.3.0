@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Calendar, Star, X, ChevronRight, Clock, UserCircle2 } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  Star,
+  X,
+  ChevronRight,
+  Clock,
+  UserCircle2,
+  BookOpen,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   listMentorsWithRatings,
@@ -56,6 +65,9 @@ export default function MentoriasPage() {
   const [slots, setSlots] = useState<MentorshipSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingSlotId, setBookingSlotId] = useState<string | null>(null);
+
+  // Modal para Biografia Completa do Mentor
+  const [bioMentor, setBioMentor] = useState<MentorWithRating | null>(null);
 
   // Modal para Avaliação (Review)
   const [reviewMentor, setReviewMentor] = useState<MentorWithRating | null>(null);
@@ -207,15 +219,16 @@ export default function MentoriasPage() {
             ) : mentors.length === 0 ? (
               <div className="text-center py-20 bg-white/40 dark:bg-slate-900/10 rounded-3xl border border-slate-200 dark:border-white/5">
                 <UserCircle2 className="w-14 h-14 text-slate-300 dark:text-cyan-400/20 mx-auto mb-4" />
-                <p className="text-slate-800 dark:text-cyan-200/40 font-medium">Nenhum mentor disponível no momento.</p>
+                <p className="text-slate-800 dark:text-cyan-200/40 font-medium">
+                  Nenhum mentor disponível no momento.
+                </p>
               </div>
             ) : (
-              /* Alterado para máximo 2 colunas para expandir horizontalmente */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {mentors.map((mentor) => (
                   <div
                     key={mentor.id}
-                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group min-h-[180px]"
+                    className="flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/30 backdrop-blur-md p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group min-h-[200px]"
                   >
                     <div className="space-y-3">
                       <div className="flex items-start gap-4">
@@ -223,7 +236,7 @@ export default function MentoriasPage() {
                           <img
                             src={mentor.mentor_avatar_url}
                             alt={mentor.name}
-                            className="w-14 h-14 rounded-2xl object-cover ring-2 ring-slate-100 dark:ring-white/5"
+                            className="w-14 h-14 rounded-2xl object-cover ring-2 ring-slate-100 dark:ring-white/5 shrink-0"
                           />
                         ) : (
                           <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
@@ -231,7 +244,9 @@ export default function MentoriasPage() {
                           </div>
                         )}
                         <div className="space-y-0.5 min-w-0 flex-1">
-                          <h3 className="font-bold text-slate-900 dark:text-white text-lg truncate">{mentor.name}</h3>
+                          <h3 className="font-bold text-slate-900 dark:text-white text-lg truncate">
+                            {mentor.name}
+                          </h3>
                           <div className="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-500/10 uppercase tracking-wide truncate max-w-full">
                             {mentor.mentor_specialty || "Mentor Geral"}
                           </div>
@@ -239,10 +254,22 @@ export default function MentoriasPage() {
                         </div>
                       </div>
 
+                      {/* Biografia truncada em no máximo 3 linhas */}
                       {mentor.mentor_bio && (
-                        <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed pt-1">
-                          {mentor.mentor_bio}
-                        </p>
+                        <div className="pt-1">
+                          <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                            {mentor.mentor_bio}
+                          </p>
+                          {mentor.mentor_bio.length > 120 && (
+                            <button
+                              onClick={() => setBioMentor(mentor)}
+                              className="mt-1 text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-0.5"
+                            >
+                              Ler biografia completa
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
 
@@ -282,8 +309,12 @@ export default function MentoriasPage() {
             ) : groupSessions.length === 0 ? (
               <div className="text-center py-20 bg-white/40 dark:bg-slate-900/10 rounded-3xl border border-slate-200 dark:border-white/5">
                 <Users className="w-14 h-14 text-slate-300 dark:text-cyan-400/20 mx-auto mb-4" />
-                <p className="text-slate-800 dark:text-cyan-200/40 font-medium">Nenhuma mentoria em grupo agendada.</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Fique de olho — novas turmas serão abertas em breve.</p>
+                <p className="text-slate-800 dark:text-cyan-200/40 font-medium">
+                  Nenhuma mentoria em grupo agendada.
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Fique de olho — novas turmas serão abertas em breve.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -298,35 +329,49 @@ export default function MentoriasPage() {
                           Mentoria Coletiva
                         </span>
                         <div className="flex items-center gap-2 ml-auto">
-                          {/* Occupancy badge */}
                           {(() => {
                             const remaining = session.max_capacity - session.current_bookings;
-                            const isFull    = remaining <= 0;
-                            const isLow     = !isFull && remaining <= 3;
+                            const isFull = remaining <= 0;
+                            const isLow = !isFull && remaining <= 3;
                             return (
-                              <span className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${
-                                isFull
-                                  ? "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border-red-200 dark:border-red-400/20"
-                                  : isLow
-                                  ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/20"
-                                  : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
-                              }`}>
+                              <span
+                                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${
+                                  isFull
+                                    ? "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 border-red-200 dark:border-red-400/20"
+                                    : isLow
+                                    ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/20"
+                                    : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/20"
+                                }`}
+                              >
                                 <Users className="w-3 h-3 shrink-0" />
-                                {isFull ? "Esgotado" : `${session.current_bookings}/${session.max_capacity} preenchidas`}
+                                {isFull
+                                  ? "Esgotado"
+                                  : `${session.current_bookings}/${session.max_capacity} preenchidas`}
                               </span>
                             );
                           })()}
-                          {/* Duration */}
                           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-cyan-200/40">
                             <Clock className="w-3.5 h-3.5" />
-                            {Math.round((new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / 60000)} min
+                            {Math.round(
+                              (new Date(session.end_time).getTime() -
+                                new Date(session.start_time).getTime()) /
+                                60000
+                            )}{" "}
+                            min
                           </div>
                         </div>
                       </div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">{session.title}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">
+                        {session.title}
+                      </h3>
                       <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-cyan-200/40">
                         <UserCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>Por <span className="font-semibold text-slate-700 dark:text-cyan-200/60">{session.mentor.display_name || session.mentor.name}</span></span>
+                        <span>
+                          Por{" "}
+                          <span className="font-semibold text-slate-700 dark:text-cyan-200/60">
+                            {session.mentor.display_name || session.mentor.name}
+                          </span>
+                        </span>
                       </div>
                       {session.description && (
                         <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
@@ -337,9 +382,14 @@ export default function MentoriasPage() {
 
                     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0">
                       <div>
-                        <p className="text-[11px] font-bold text-slate-400 dark:text-cyan-200/30 uppercase tracking-wider">Agendado para</p>
+                        <p className="text-[11px] font-bold text-slate-400 dark:text-cyan-200/30 uppercase tracking-wider">
+                          Agendado para
+                        </p>
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                          {new Date(session.start_time).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                          {new Date(session.start_time).toLocaleString("pt-BR", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })}
                         </p>
                       </div>
                       {session.current_bookings >= session.max_capacity ? (
@@ -366,6 +416,75 @@ export default function MentoriasPage() {
         )}
       </AnimatePresence>
 
+      {/* ── MODAL PARA BIOGRAFIA COMPLETA DO MENTOR ── */}
+      <AnimatePresence>
+        {bioMentor && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setBioMentor(null)}
+              className="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-xl z-10 flex flex-col max-h-[80vh]"
+            >
+              <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-white/5 shrink-0">
+                <div className="flex items-center gap-3">
+                  {bioMentor.mentor_avatar_url ? (
+                    <img
+                      src={bioMentor.mentor_avatar_url}
+                      alt={bioMentor.name}
+                      className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-100 dark:ring-white/5 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
+                      <UserCircle2 className="w-7 h-7" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
+                      {bioMentor.name}
+                    </h3>
+                    <div className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-500/10 uppercase tracking-wide mt-1">
+                      {bioMentor.mentor_specialty || "Mentor Geral"}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBioMentor(null)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto py-4 space-y-2 pr-1">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-cyan-200/40 uppercase tracking-wider mb-2">
+                  <BookOpen className="w-3.5 h-3.5" /> Biografia e Trajetória
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                  {bioMentor.mentor_bio}
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex justify-end shrink-0">
+                <button
+                  onClick={() => setBioMentor(null)}
+                  className="h-10 px-5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white text-sm font-bold transition-all"
+                >
+                  Fechar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ── MODAL DE SLOTS DA AGENDA ── */}
       <AnimatePresence>
         {selectedMentor && (
@@ -385,8 +504,12 @@ export default function MentoriasPage() {
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5 shrink-0">
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Horários Disponíveis</h3>
-                  <p className="text-xs text-slate-500 dark:text-cyan-200/40 mt-0.5">Mentor: {selectedMentor.name}</p>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">
+                    Horários Disponíveis
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-cyan-200/40 mt-0.5">
+                    Mentor: {selectedMentor.name}
+                  </p>
                 </div>
                 <button
                   onClick={() => setSelectedMentor(null)}
@@ -413,9 +536,17 @@ export default function MentoriasPage() {
                       className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5"
                     >
                       <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                        {new Date(slot.start_time).toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })} - {" "}
+                        {new Date(slot.start_time).toLocaleDateString("pt-BR", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}{" "}
+                        -{" "}
                         <span className="font-bold text-slate-900 dark:text-white">
-                          {new Date(slot.start_time).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(slot.start_time).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </span>
                       </div>
                       <button
@@ -466,7 +597,11 @@ export default function MentoriasPage() {
 
               <div className="py-4 space-y-4">
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Como foi sua experiência de mentoria com <span className="font-bold text-slate-900 dark:text-white">{reviewMentor.name}</span>?
+                  Como foi sua experiência de mentoria com{" "}
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {reviewMentor.name}
+                  </span>
+                  ?
                 </p>
 
                 {/* Seletor de Estrelas */}
@@ -479,7 +614,9 @@ export default function MentoriasPage() {
                     >
                       <Star
                         className={`w-7 h-7 ${
-                          star <= rating ? "text-amber-500 fill-amber-500" : "text-slate-200 dark:text-white/10"
+                          star <= rating
+                            ? "text-amber-500 fill-amber-500"
+                            : "text-slate-200 dark:text-white/10"
                         }`}
                       />
                     </button>
@@ -487,7 +624,9 @@ export default function MentoriasPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-cyan-200/40 uppercase tracking-wider">Comentário (opcional)</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-cyan-200/40 uppercase tracking-wider">
+                    Comentário (opcional)
+                  </label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}

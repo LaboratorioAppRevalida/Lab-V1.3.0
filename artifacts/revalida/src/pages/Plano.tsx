@@ -15,6 +15,7 @@ import {
   X,
   Save,
   ChevronLeft,
+  Tag,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,17 @@ import {
 import { avgPercent, inferArea } from "@/lib/gamificationStorage";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// Mapeamento de cores sólidas para os badges dos dias da semana
+const DIA_BADGES: Record<PlanoDia, string> = {
+  1: "bg-emerald-500 text-white", // Seg
+  2: "bg-amber-500 text-white",   // Ter
+  3: "bg-teal-500 text-white",    // Qua
+  4: "bg-blue-500 text-white",    // Qui
+  5: "bg-pink-500 text-white",    // Sex
+  6: "bg-cyan-500 text-white",    // Sáb
+  0: "bg-violet-500 text-white",  // Dom
+};
 
 export default function Plano() {
   const { history } = useTraining();
@@ -176,7 +188,7 @@ export default function Plano() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -245,8 +257,8 @@ export default function Plano() {
         </div>
       </section>
 
-      {/* CALENDÁRIO */}
-      <section className="flex flex-col gap-3">
+      {/* CALENDÁRIO EM TIMELINE VERTICAL */}
+      <section className="flex flex-col gap-4 mt-2">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
@@ -260,58 +272,70 @@ export default function Plano() {
             className="rounded-xl gradient-primary text-white border-0 glow-primary"
           >
             <Plus className="w-4 h-4 sm:mr-1.5" />
-            <span className="hidden sm:inline">Adicionar bloco</span>
+            <span>Adicionar bloco</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
+        <Card className="rounded-3xl border-border/60 bg-card/60 backdrop-blur-md p-4 sm:p-6 flex flex-col gap-6">
           {PLANO_DIAS.map((dia, idx) => {
             const items = blocosByDay[dia.value] ?? [];
+            const isLast = idx === PLANO_DIAS.length - 1;
+
             return (
-              <motion.div
-                key={dia.value}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: idx * 0.03 }}
-              >
-                <Card className="rounded-2xl border-border/60 bg-card/60 backdrop-blur-sm p-3 h-full flex flex-col gap-2 min-h-[140px]">
-                  <header className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+              <div key={dia.value} className="flex flex-col gap-4">
+                <div className="flex items-start gap-4 sm:gap-6">
+                  {/* COLUNA DA ESQUERDA: DIA DA SEMANA */}
+                  <div className="flex flex-col items-center shrink-0 w-24 sm:w-28 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider",
+                          DIA_BADGES[dia.value]
+                        )}
+                      >
                         {dia.short}
-                      </div>
-                      <div className="text-sm font-bold lg:hidden">{dia.full}</div>
+                      </span>
                     </div>
+                    <span className="text-xs font-semibold text-muted-foreground mt-1">
+                      {dia.full.split("-")[0]}
+                    </span>
                     <button
                       onClick={() =>
                         setEditing({ bloco: newBloco(dia.value), isNew: true })
                       }
-                      className="p-1 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      aria-label="Adicionar bloco"
+                      className="mt-2 text-[11px] font-bold text-primary hover:underline flex items-center gap-0.5 opacity-80 hover:opacity-100 transition-opacity"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 h-3" /> Bloco
                     </button>
-                  </header>
-                  <div className="flex-1 flex flex-col gap-2">
-                    {items.length === 0 && (
-                      <div className="flex-1 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-[11px] text-muted-foreground/70 py-4 px-2 text-center">
-                        Sem blocos
-                      </div>
-                    )}
-                    {items.map((b) => (
-                      <BlocoCard
-                        key={b.id}
-                        bloco={b}
-                        onEdit={() => setEditing({ bloco: b, isNew: false })}
-                        onDelete={() => setConfirmDelete(b.id)}
-                      />
-                    ))}
                   </div>
-                </Card>
-              </motion.div>
+
+                  {/* DIVISOR VERTICAL COM TRAÇO */}
+                  <div className="w-[2px] bg-border/60 self-stretch my-1 rounded-full shrink-0" />
+
+                  {/* COLUNA DA DIREITA: LISTA DE BLOCOS */}
+                  <div className="flex-1 flex flex-col gap-3 min-w-0">
+                    {items.length === 0 ? (
+                      <div className="py-2 text-xs text-muted-foreground/60 italic">
+                        Nenhum bloco agendado
+                      </div>
+                    ) : (
+                      items.map((b) => (
+                        <BlocoRow
+                          key={b.id}
+                          bloco={b}
+                          onEdit={() => setEditing({ bloco: b, isNew: false })}
+                          onDelete={() => setConfirmDelete(b.id)}
+                        />
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {!isLast && <div className="border-b border-border/40 w-full" />}
+              </div>
             );
           })}
-        </div>
+        </Card>
       </section>
 
       {/* EDITOR MODAL */}
@@ -558,7 +582,8 @@ function AreaListCard({
   );
 }
 
-function BlocoCard({
+/* COMPONENTE DA LINHA DO BLOCO DA TIMELINE */
+function BlocoRow({
   bloco,
   onEdit,
   onDelete,
@@ -567,67 +592,66 @@ function BlocoCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const tone = AREA_TONES[bloco.area] ?? AREA_TONES["Clínica médica"];
   const tipoLabel = PLANO_TIPOS.find((t) => t.value === bloco.tipo)?.label ?? bloco.tipo;
+
   return (
     <motion.div
-      whileHover={{ y: -1 }}
-      onClick={() => setOpen(!open)}
+      whileHover={{ x: 2 }}
       className={cn(
-        "rounded-xl border p-2.5 cursor-pointer bg-gradient-to-br backdrop-blur-sm transition-all",
-        tone,
-        open && "ring-2 ring-primary/40 shadow-lg",
+        "rounded-2xl border p-3 bg-gradient-to-br backdrop-blur-sm transition-all flex items-center justify-between gap-3 group",
+        tone
       )}
     >
-      <div className="flex items-center gap-1.5 text-[11px] font-bold tabular-nums">
-        <Clock className="w-3 h-3 opacity-70" />
-        {bloco.horario}
-        <span
-          className={cn(
-            "ml-auto px-1.5 py-0.5 rounded-full text-[9px] uppercase tracking-wider border font-bold",
-            TIPO_TONES[bloco.tipo],
-          )}
-        >
-          {tipoLabel}
-        </span>
-      </div>
-      <div className="mt-1 text-xs font-bold leading-snug">{bloco.area}</div>
-      {bloco.titulo && (
-        <div className="text-[11px] opacity-80 leading-snug mt-0.5 line-clamp-2">
-          {bloco.titulo}
-        </div>
-      )}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-1 mt-2 pt-2 border-t border-current/20"
+      <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex items-center gap-2">
+          {/* TÍTULO/ÁREA PRINCIPAL */}
+          <h4 className="font-bold text-sm tracking-tight truncate">
+            {bloco.titulo ? bloco.titulo : bloco.area}
+          </h4>
+          {/* BADGE DO TIPO */}
+          <span
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider border font-bold shrink-0",
+              TIPO_TONES[bloco.tipo]
+            )}
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-white/40 dark:bg-black/30 text-[10px] font-bold hover:bg-white/60 dark:hover:bg-black/40 transition-colors"
-            >
-              <Pencil className="w-3 h-3" /> Editar
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="inline-flex items-center justify-center px-2 py-1.5 rounded-lg bg-white/40 dark:bg-black/30 text-rose-600 hover:bg-rose-500/20 transition-colors"
-              aria-label="Remover"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {tipoLabel}
+          </span>
+        </div>
+
+        {/* INFORMAÇÕES SECUNDÁRIAS (ÁREA E HORÁRIO) */}
+        <div className="flex items-center gap-3 text-xs opacity-80 font-medium">
+          {bloco.titulo && (
+            <span className="flex items-center gap-1">
+              <Tag className="w-3 h-3 opacity-70" />
+              {bloco.area}
+            </span>
+          )}
+          <span className="flex items-center gap-1 font-bold tabular-nums">
+            <Clock className="w-3 h-3 opacity-70" />
+            {bloco.horario}
+          </span>
+        </div>
+      </div>
+
+      {/* BOTAO DE AÇÕES */}
+      <div className="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded-lg bg-white/40 dark:bg-black/30 hover:bg-white/60 dark:hover:bg-black/40 transition-colors"
+          title="Editar"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-lg bg-white/40 dark:bg-black/30 text-rose-600 hover:bg-rose-500/20 transition-colors"
+          title="Remover"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </motion.div>
   );
 }
